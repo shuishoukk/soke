@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>课程编辑器 - AI课程设计师</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    animation: {
+                        'fade-in': 'fadeIn 0.5s ease-in-out',
+                        'slide-in': 'slideIn 0.3s ease-out'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        .content-editor {
+            min-height: 300px;
+        }
+        .lesson-item:hover {
+            background-color: #f3f4f6;
+        }
+        .lesson-item.active {
+            background-color: #dbeafe;
+            border-left: 3px solid #3b82f6;
+        }
+        .chapter-item {
+            border-bottom: 1px solid #e5e7eb;
+        }
+        .video-player {
+            aspect-ratio: 16/9;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- 顶部导航栏 -->
+    <nav class="bg-white border-b border-gray-200 sticky top-0 z-50">
+        <div class="px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-14">
+                <div class="flex items-center space-x-4">
+                    <button id="backBtn" class="flex items-center space-x-2 text-gray-500 hover:text-gray-700 transition-colors">
+                        <i class="fas fa-arrow-left text-sm"></i>
+                        <span class="text-sm">课程名称课程名称课程...</span>
+                    </button>
+                </div>
+                
+                <!-- 步骤指示器 -->
+                <div class="flex items-center space-x-8">
+                    <div class="flex items-center space-x-2">
+                        <div class="w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs">
+                            <i class="fas fa-check"></i>
+                        </div>
+                        <span class="text-sm text-gray-600">基本信息</span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <div class="w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs">2</div>
+                        <span class="text-sm text-blue-600 font-medium">课程目录</span>
+                </div>
+                    <div class="flex items-center space-x-2">
+                        <div class="w-6 h-6 bg-gray-300 text-gray-600 rounded-full flex items-center justify-center text-xs">3</div>
+                        <span class="text-sm text-gray-400">发布设置</span>
+                    </div>
+                </div>
+                
+                <div class="flex items-center space-x-3">
+                    <button class="px-3 py-1.5 text-gray-600 hover:text-gray-800 text-sm font-medium transition-colors">
+                        存草稿
+                    </button>
+                    <button id="nextStepBtn" class="px-4 py-1.5 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors text-sm">
+                        下一步
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主要内容区域 -->
+    <div class="flex h-screen">
+        <!-- 左侧目录 -->
+        <div class="w-80 bg-white border-r border-gray-200 flex flex-col">
+            <!-- 目录头部 -->
+            <div class="p-4 border-b border-gray-200">
+                <div class="flex items-center justify-between mb-3">
+                    <h3 class="text-base font-medium text-gray-900">目录</h3>
+                    <button id="addContentBtn" class="px-3 py-1.5 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors flex items-center text-sm">
+                        <i class="fas fa-plus mr-1 text-xs"></i>
+                        添加内容
+                    </button>
+                </div>
+                <button class="flex items-center text-gray-600 text-sm hover:text-gray-800">
+                    <i class="fas fa-bars mr-2 text-xs"></i>
+                    <span>章节排序</span>
+                </button>
+            </div>
+            
+            <!-- 目录列表 -->
+            <div class="flex-1 overflow-y-auto">
+                <div id="courseOutline" class="divide-y divide-gray-100">
+                    <!-- 目录内容将动态生成 -->
+                </div>
+            </div>
+
+            <!-- 底部学习方式选择 -->
+            <div class="border-t border-gray-200 p-4">
+                <select class="w-full p-2.5 border border-gray-300 rounded-md bg-white text-gray-900 text-sm">
+                    <option value="free">自由式学习</option>
+                    <option value="sequential">顺序学习</option>
+                    <option value="guided">引导式学习</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- 中间内容展示区域 -->
+        <div class="flex-1 flex flex-col bg-gray-50">
+            <!-- 内容头部信息 -->
+            <div class="bg-white border-b border-gray-200 px-6 py-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 id="currentLessonTitle" class="text-lg font-medium text-gray-900">01 | 海系数据分析</h2>
+                        <div class="flex items-center space-x-4 mt-1 text-sm text-gray-500">
+                            <span>时长：<span id="currentLessonDuration">00:30:0</span></span>
+                            <span>积分：<span id="currentLessonScore">5.4</span></span>
+                    </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 主要内容区域 -->
+            <div class="flex-1 p-6">
+                <!-- 视频播放器样式的内容展示区域 -->
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+                    <!-- 播放器区域 -->
+                    <div id="contentPlayer" class="video-player relative flex items-center justify-center">
+                        <div class="text-center text-white">
+                            <div class="w-16 h-16 bg-white bg-opacity-20 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <i class="fas fa-play text-2xl text-white"></i>
+                            </div>
+                            <h3 class="text-xl font-medium mb-2">海系数据分析</h3>
+                            <p class="text-white text-opacity-80">点击播放查看课程内容</p>
+                </div>
+
+                        <!-- 播放器控制栏 -->
+                        <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black to-transparent p-4">
+                            <div class="flex items-center space-x-4">
+                                <button id="playBtn" class="text-white hover:text-blue-300 transition-colors">
+                                    <i class="fas fa-play"></i>
+                                </button>
+                                <div class="flex-1 h-1 bg-white bg-opacity-30 rounded-full">
+                                    <div class="h-full bg-white rounded-full" style="width: 25%"></div>
+                                </div>
+                                <span class="text-white text-sm">07:30</span>
+                                <button class="text-white hover:text-blue-300 transition-colors">
+                                    <i class="fas fa-volume-up"></i>
+                                </button>
+                                <button class="text-white hover:text-blue-300 transition-colors">
+                                    <i class="fas fa-expand"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+        <!-- 右侧设置面板 -->
+        <div class="w-80 bg-white border-l border-gray-200 flex flex-col">
+            <!-- 设置面板头部 -->
+            <div class="p-4 border-b border-gray-200">
+                <h2 class="text-base font-medium text-gray-900">课件设置</h2>
+            </div>
+                                    
+            <!-- 设置内容 -->
+            <div class="flex-1 overflow-y-auto p-4 space-y-6">
+                <!-- 标题设置 -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        <span class="text-red-500">*</span>标题
+                    </label>
+                    <input type="text" id="lessonTitleInput" 
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm" 
+                           placeholder="习近平用典）第2集：治国的本根，习近平用典"
+                           value="习近平用典）第2集：治国的本根，习近平用典">
+                                    </div>
+                                    
+                <!-- 音频文件 -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">音频文件 
+                        <i class="fas fa-question-circle text-gray-400 ml-1" title="帮助信息"></i>
+                    </label>
+                    <div class="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
+                        <div class="flex flex-col items-center space-y-2">
+                            <button class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors text-sm">
+                                重新上传
+                            </button>
+                            <button class="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors text-sm">
+                                修改课件
+                                    </button>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-2">支持上传音频文件，可修改作业内容设置</p>
+                    </div>
+                </div>
+
+                <!-- 播放形式 -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-3">播放形式</label>
+                    <div class="space-y-2">
+                        <label class="flex items-center">
+                            <input type="radio" name="playType" value="audio" checked 
+                                   class="mr-2 text-blue-600 focus:ring-blue-500">
+                            <span class="text-sm text-gray-700">纯音频</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="radio" name="playType" value="audio-pdf" 
+                                   class="mr-2 text-blue-600 focus:ring-blue-500">
+                            <span class="text-sm text-gray-700">音频配PDF</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="radio" name="playType" value="audio-image" 
+                                   class="mr-2 text-blue-600 focus:ring-blue-500">
+                            <span class="text-sm text-gray-700">音频配图片</span>
+                        </label>
+            </div>
+        </div>
+
+                <!-- 积分设置 -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        <span class="text-red-500">*</span>积分 
+                        <i class="fas fa-question-circle text-gray-400 ml-1" title="积分说明"></i>
+                    </label>
+                    <div class="relative">
+                        <input type="number" step="0.1" 
+                               class="w-16 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm text-center" 
+                               value="2" min="0" max="10">
+                        <div class="flex items-center mt-1">
+                            <i class="fas fa-chevron-up text-gray-400 text-xs"></i>
+                            <i class="fas fa-chevron-down text-gray-400 text-xs ml-1"></i>
+            </div>
+                    </div>
+                </div>
+
+                <!-- 允许学员在PC端下载课件 -->
+                <div>
+                    <label class="flex items-center">
+                        <input type="checkbox" class="mr-2 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                        <span class="text-sm text-gray-700">允许学员在PC端下载课件</span>
+                    </label>
+                </div>
+            </div>
+            
+            <!-- 底部操作按钮 -->
+            <div class="border-t border-gray-200 p-4">
+                <button id="saveBtn" class="w-full px-4 py-2.5 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors text-sm font-medium">
+                    保存
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 全局状态管理
+        const AppState = {
+            courseData: null,
+            currentLesson: null,
+            currentChapter: 0,
+            currentLessonIndex: 0
+        };
+
+        // 初始化应用
+        function initApp() {
+            // 加载课程数据
+            loadCourseData();
+            
+            // 初始化事件监听器
+            initEventListeners();
+            
+            // 渲染课程大纲
+            renderOutline();
+        }
+
+        // 加载课程数据
+        function loadCourseData() {
+            try {
+                const courseData = JSON.parse(sessionStorage.getItem('editCourseData') || '{}');
+                AppState.courseData = courseData;
+                
+                console.log('加载的课程数据:', courseData);
+            } catch (error) {
+                console.error('加载课程数据失败:', error);
+                // 使用默认数据
+                AppState.courseData = generateDefaultCourseData();
+            }
+        }
+
+        // 生成默认课程数据
+        function generateDefaultCourseData() {
+            return {
+                generatedContent: {
+                    title: '数据分析专业培训课程',
+                    chapters: [
+                        {
+                            id: 1,
+                            title: '数据分析基础',
+                            description: '掌握数据分析的基本概念和核心理论',
+                            lessons: [
+                                {
+                                    id: 'lesson-1-1',
+                                    title: '海系数据分析',
+                                    duration: '00:30:0',
+                                    score: '5.4',
+                                    content: {
+                                        type: 'audio',
+                                        audioUrl: '',
+                                        slides: []
+                                    }
+                                },
+                                {
+                                    id: 'lesson-1-2',
+                                    title: 'Excel常用功能解析',
+                                    duration: '00:25:0',
+                                    score: '4.8',
+                                    content: {
+                                        type: 'audio',
+                                        audioUrl: '',
+                                        slides: []
+                                    }
+                                },
+                                {
+                                    id: 'lesson-1-3',
+                                    title: '数据分析方式与层次',
+                                    duration: '00:35:0',
+                                    score: '6.2',
+                                    content: {
+                                        type: 'audio',
+                                        audioUrl: '',
+                                        slides: []
+                                    }
+                                }
+                            ]
+                        },
+                        {
+                            id: 2,
+                            title: '数据分析模型',
+                            description: '学习主流数据分析模型的原理和应用',
+                            lessons: [
+                                {
+                                    id: 'lesson-2-1',
+                                    title: '回归分析模型',
+                                    duration: '00:40:0',
+                                    score: '7.1',
+                                    content: {
+                                        type: 'audio',
+                                        audioUrl: '',
+                                        slides: []
+                                    }
+                                },
+                                {
+                                    id: 'lesson-2-2',
+                                    title: '聚类分析方法',
+                                    duration: '00:30:0',
+                                    score: '5.9',
+                                    content: {
+                                        type: 'audio',
+                                        audioUrl: '',
+                                        slides: []
+                                    }
+                                },
+                                {
+                                    id: 'lesson-2-3',
+                                    title: '决策树算法',
+                                    duration: '00:45:0',
+                                    score: '8.3',
+                                    content: {
+                                        type: 'audio',
+                                        audioUrl: '',
+                                        slides: []
+                                    }
+                                }
+                            ]
+                        },
+                        {
+                            id: 3,
+                            title: '行业数据分析',
+                            description: '了解不同行业的数据分析应用场景',
+                            lessons: [
+                                {
+                                    id: 'lesson-3-1',
+                                    title: '金融行业数据分析',
+                                    duration: '00:50:0',
+                                    score: '9.1',
+                                    content: {
+                                        type: 'audio',
+                                        audioUrl: '',
+                                        slides: []
+                                    }
+                                },
+                                {
+                                    id: 'lesson-3-2',
+                                    title: '电商数据分析实战',
+                                    duration: '00:42:0',
+                                    score: '8.7',
+                                    content: {
+                                        type: 'audio',
+                                        audioUrl: '',
+                                        slides: []
+                                    }
+                                }
+                            ]
+                        },
+                        {
+                            id: 4,
+                            title: '店铺数据分析',
+                            description: '专门针对店铺运营的数据分析技巧',
+                            lessons: [
+                                {
+                                    id: 'lesson-4-1',
+                                    title: '用户行为数据分析',
+                                    duration: '00:38:0',
+                                    score: '7.5',
+                                    content: {
+                                        type: 'audio',
+                                        audioUrl: '',
+                                        slides: []
+                                    }
+                                },
+                                {
+                                    id: 'lesson-4-2',
+                                    title: '销售数据深度挖掘',
+                                    duration: '00:55:0',
+                                    score: '9.3',
+                                    content: {
+                                        type: 'audio',
+                                        audioUrl: '',
+                                        slides: []
+                                    }
+                                }
+                            ]
+                        }
+                    ]
+                }
+            };
+        }
+
+        // 初始化事件监听器
+        function initEventListeners() {
+            // 返回按钮
+            document.getElementById('backBtn').addEventListener('click', () => {
+                if (confirm('确定要返回吗？未保存的更改可能会丢失。')) {
+                    window.close();
+                }
+            });
+
+            // 播放按钮
+            document.getElementById('playBtn').addEventListener('click', () => {
+                // 模拟播放功能
+                const playIcon = document.querySelector('#playBtn i');
+                if (playIcon.classList.contains('fa-play')) {
+                    playIcon.className = 'fas fa-pause';
+                } else {
+                    playIcon.className = 'fas fa-play';
+                }
+            });
+
+            // 保存按钮
+            document.getElementById('saveBtn').addEventListener('click', () => {
+                saveLessonData();
+            });
+
+            // 下一步按钮
+            document.getElementById('nextStepBtn').addEventListener('click', () => {
+                saveLessonData();
+                // 跳转到发布设置页面
+                window.open('course-publish.html', '_blank');
+            });
+        }
+
+        // 渲染课程大纲
+        function renderOutline() {
+            const outlineContainer = document.getElementById('courseOutline');
+            const courseData = AppState.courseData;
+            
+            if (!courseData || !courseData.generatedContent) {
+                outlineContainer.innerHTML = '<p class="p-4 text-gray-500 text-sm">没有课程数据</p>';
+                return;
+            }
+
+            const content = courseData.generatedContent;
+            outlineContainer.innerHTML = '';
+
+            content.chapters.forEach((chapter, chapterIndex) => {
+                const chapterDiv = document.createElement('div');
+                chapterDiv.className = 'chapter-item';
+                
+                chapterDiv.innerHTML = `
+                    <div class="p-4">
+                        <div class="flex items-center justify-between mb-2">
+                            <button class="flex items-center space-x-2 text-left chapter-toggle" data-chapter="${chapterIndex}">
+                                <i class="fas fa-chevron-down text-gray-400 text-sm transform transition-transform"></i>
+                                <span class="font-medium text-gray-900 text-sm">${getChineseNumber(chapterIndex + 1)}、${chapter.title}</span>
+                                <span class="text-gray-500 text-xs">(${chapter.lessons.length}节)</span>
+                            </button>
+                        </div>
+                        <div class="chapter-lessons ml-6 space-y-1">
+                            ${chapter.lessons.map((lesson, lessonIndex) => `
+                                <div class="lesson-item cursor-pointer p-2 rounded text-sm hover:bg-gray-50 transition-colors ${chapterIndex === 0 && lessonIndex === 0 ? 'active' : ''}" 
+                                     data-chapter="${chapterIndex}" data-lesson="${lessonIndex}">
+                                    <div class="text-gray-900">${String(lessonIndex + 1).padStart(2, '0')} ${lesson.title}</div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+                
+                outlineContainer.appendChild(chapterDiv);
+            });
+
+            // 绑定事件
+            bindOutlineEvents();
+            
+            // 默认选择第一个课程
+            if (content.chapters.length > 0 && content.chapters[0].lessons.length > 0) {
+                selectLesson(0, 0);
+            }
+        }
+
+        // 绑定大纲事件
+        function bindOutlineEvents() {
+            // 章节折叠切换
+            document.querySelectorAll('.chapter-toggle').forEach(toggle => {
+                toggle.addEventListener('click', (e) => {
+                    const chapterIndex = parseInt(e.currentTarget.dataset.chapter);
+                    const lessons = e.currentTarget.closest('.chapter-item').querySelector('.chapter-lessons');
+                    const icon = e.currentTarget.querySelector('i');
+                    
+                    if (lessons.style.display === 'none') {
+                        lessons.style.display = 'block';
+                        icon.style.transform = 'rotate(0deg)';
+                    } else {
+                        lessons.style.display = 'none';
+                        icon.style.transform = 'rotate(-90deg)';
+                    }
+                });
+            });
+
+            // 课程选择
+            document.querySelectorAll('.lesson-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    const chapterIndex = parseInt(item.dataset.chapter);
+                    const lessonIndex = parseInt(item.dataset.lesson);
+                    selectLesson(chapterIndex, lessonIndex);
+                });
+            });
+        }
+
+        // 选择课程
+        function selectLesson(chapterIndex, lessonIndex) {
+            const courseData = AppState.courseData;
+            const lesson = courseData.generatedContent.chapters[chapterIndex].lessons[lessonIndex];
+            
+            AppState.currentChapter = chapterIndex;
+            AppState.currentLessonIndex = lessonIndex;
+            AppState.currentLesson = lesson;
+
+            // 更新选中状态
+            document.querySelectorAll('.lesson-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            const selectedItem = document.querySelector(`[data-chapter="${chapterIndex}"][data-lesson="${lessonIndex}"]`);
+            if (selectedItem) {
+                selectedItem.classList.add('active');
+            }
+
+            // 更新课程信息显示
+            updateLessonDisplay(lesson, lessonIndex + 1);
+            
+            // 更新右侧设置面板
+            updateSettingsPanel(lesson);
+        }
+
+        // 更新课程显示
+        function updateLessonDisplay(lesson, lessonNumber) {
+            document.getElementById('currentLessonTitle').textContent = 
+                `${String(lessonNumber).padStart(2, '0')} | ${lesson.title}`;
+            document.getElementById('currentLessonDuration').textContent = lesson.duration || '00:30:0';
+            document.getElementById('currentLessonScore').textContent = lesson.score || '5.4';
+        }
+
+        // 更新设置面板
+        function updateSettingsPanel(lesson) {
+            document.getElementById('lessonTitleInput').value = lesson.title;
+            
+            // 设置播放形式
+            const playType = lesson.content?.type || 'audio';
+            document.querySelector(`input[name="playType"][value="${playType}"]`)?.click();
+        }
+
+        // 保存课程数据
+        function saveLessonData() {
+            if (!AppState.currentLesson) return;
+
+            // 获取当前表单数据
+            const title = document.getElementById('lessonTitleInput').value;
+            const playType = document.querySelector('input[name="playType"]:checked')?.value || 'audio';
+            const score = document.querySelector('input[type="number"]')?.value || '2';
+
+            // 更新当前课程数据
+            AppState.currentLesson.title = title;
+            AppState.currentLesson.content.type = playType;
+            AppState.currentLesson.score = score;
+
+            // 保存到sessionStorage
+            sessionStorage.setItem('editCourseData', JSON.stringify(AppState.courseData));
+            
+            // 显示保存成功提示
+            showNotification('保存成功', 'success');
+            
+            // 更新显示
+            updateLessonDisplay(AppState.currentLesson, AppState.currentLessonIndex + 1);
+            renderOutline(); // 重新渲染以更新标题显示
+        }
+
+        // 显示通知
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `fixed top-20 right-4 z-50 px-4 py-2 rounded-md shadow-lg transition-all duration-300 ${
+                type === 'success' ? 'bg-green-500 text-white' : 
+                type === 'error' ? 'bg-red-500 text-white' : 
+                'bg-blue-500 text-white'
+            }`;
+            notification.textContent = message;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                notification.style.transform = 'translateX(100%)';
+                setTimeout(() => {
+                    if (document.body.contains(notification)) {
+                    document.body.removeChild(notification);
+                    }
+                }, 300);
+            }, 2000);
+        }
+
+        // 获取中文数字
+        function getChineseNumber(num) {
+            const chars = ['零', '一', '二', '三', '四', '五', '六', '七', '八', '九'];
+            return chars[num] || num.toString();
+        }
+
+        // 启动应用
+        document.addEventListener('DOMContentLoaded', initApp);
+    </script>
+</body>
+</html> 

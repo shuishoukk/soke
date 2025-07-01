@@ -1,0 +1,2863 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>课程创建 - AI课程设计师</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    animation: {
+                        'fade-in': 'fadeIn 0.5s ease-in-out',
+                        'slide-in': 'slideIn 0.3s ease-out',
+                        'pulse-slow': 'pulse 2s infinite'
+                    },
+                    colors: {
+                        'primary': '#1976d2',
+                        'primary-light': '#42a5f5',
+                        'gray-50': '#fafafa',
+                        'gray-100': '#f5f5f5',
+                        'gray-200': '#eeeeee',
+                        'gray-300': '#e0e0e0',
+                        'gray-500': '#9e9e9e',
+                        'gray-600': '#757575',
+                        'gray-700': '#616161',
+                        'gray-800': '#424242',
+                        'gray-900': '#212121'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+            background-color: #fafafa;
+        }
+        
+        .step-content {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        
+        /* 步骤指示器样式 */
+        .step-indicator {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 60px;
+        }
+        
+        .step-indicator .step-circle {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 12px;
+            margin-bottom: 4px;
+            transition: all 0.3s ease;
+        }
+        
+        .step-indicator.active .step-circle {
+            background-color: #1976d2;
+            color: white;
+        }
+        
+        .step-indicator:not(.active) .step-circle {
+            background-color: #e0e0e0;
+            color: #757575;
+        }
+        
+        .step-indicator .step-text {
+            font-size: 10px;
+            text-align: center;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+        
+        .step-indicator.active .step-text {
+            color: #1976d2;
+        }
+        
+        .step-indicator:not(.active) .step-text {
+            color: #757575;
+        }
+        
+        .step-line {
+            height: 2px;
+            background-color: #e0e0e0;
+            width: 40px;
+            margin: 0 8px;
+            align-self: flex-start;
+            margin-top: 12px;
+            transition: all 0.3s ease;
+        }
+        
+        .step-line.active {
+            background-color: #1976d2;
+        }
+        
+        /* 表单元素样式 */
+        .form-input {
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 12px 16px;
+            font-size: 14px;
+            transition: all 0.2s ease;
+            background-color: white;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: #1976d2;
+            box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.1);
+        }
+        
+        .form-label {
+            font-size: 14px;
+            font-weight: 500;
+            color: #212121;
+            margin-bottom: 8px;
+            display: block;
+        }
+        
+        .required-mark {
+            color: #f44336;
+            margin-right: 4px;
+        }
+        
+        /* 按钮样式 */
+        .btn-primary {
+            background-color: #1976d2;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 24px;
+            font-weight: 500;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .btn-primary:hover {
+            background-color: #1565c0;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(25, 118, 210, 0.3);
+        }
+        
+        .btn-secondary {
+            background-color: white;
+            color: #1976d2;
+            border: 1px solid #1976d2;
+            border-radius: 8px;
+            padding: 12px 24px;
+            font-weight: 500;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .btn-secondary:hover {
+            background-color: rgba(25, 118, 210, 0.05);
+            transform: translateY(-1px);
+        }
+        
+        /* 封面图样式 */
+        .cover-image {
+            width: 180px;
+            height: 120px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 50%, #90caf9 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        .cover-image::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(25, 118, 210, 0.1) 0%, rgba(66, 165, 245, 0.2) 100%);
+        }
+        
+        .cover-icon {
+            position: relative;
+            z-index: 2;
+            background: white;
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transform: rotate(12deg);
+        }
+        
+        .cover-icon i {
+            color: #1976d2;
+            font-size: 20px;
+        }
+        
+        /* 富文本编辑器工具栏 */
+        .editor-toolbar {
+            background-color: #f5f5f5;
+            border: 1px solid #e0e0e0;
+            border-bottom: none;
+            border-radius: 8px 8px 0 0;
+            padding: 8px 12px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .editor-btn {
+            width: 32px;
+            height: 32px;
+            border: none;
+            background: none;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: #616161;
+            transition: all 0.2s ease;
+        }
+        
+        .editor-btn:hover {
+            background-color: #e0e0e0;
+            color: #212121;
+        }
+        
+        .editor-divider {
+            width: 1px;
+            height: 20px;
+            background-color: #e0e0e0;
+            margin: 0 4px;
+        }
+        
+        .editor-textarea {
+            border: 1px solid #e0e0e0;
+            border-top: none;
+            border-radius: 0 0 8px 8px;
+            padding: 16px;
+            resize: none;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        
+        .editor-textarea:focus {
+            outline: none;
+            border-color: #1976d2;
+            box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.1);
+        }
+        
+        /* 卡片样式 */
+        .content-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            border: 1px solid #f0f0f0;
+        }
+        
+        /* 响应式 */
+        @media (max-width: 768px) {
+            .step-indicator {
+                min-width: 60px;
+            }
+            
+            .step-indicator .step-circle {
+                width: 28px;
+                height: 28px;
+                font-size: 12px;
+            }
+            
+            .step-line {
+                margin: 0 8px;
+                margin-top: 14px;
+            }
+        }
+        
+        .toggle-switch {
+            appearance: none;
+            width: 44px;
+            height: 24px;
+            background: #e5e7eb;
+            border-radius: 12px;
+            position: relative;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .toggle-switch:checked {
+            background: #3b82f6;
+        }
+        .toggle-switch::before {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: white;
+            top: 2px;
+            left: 2px;
+            transition: transform 0.3s;
+        }
+        .toggle-switch:checked::before {
+            transform: translateX(20px);
+        }
+        .animation-delay-200 {
+            animation-delay: 0.2s;
+        }
+        .animation-delay-400 {
+            animation-delay: 0.4s;
+        }
+        .animation-delay-500 {
+            animation-delay: 0.5s;
+        }
+        .animation-delay-1000 {
+            animation-delay: 1s;
+        }
+        .pyramid-layer {
+            opacity: 0;
+            transform: translateY(20px) rotateX(45deg);
+            animation: pyramidDrop 0.8s ease-out forwards;
+        }
+        @keyframes pyramidDrop {
+            to {
+                opacity: 1;
+                transform: translateY(0) rotateX(45deg);
+            }
+        }
+        
+        .animate-fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+        
+        .animate-slide-up {
+            animation: slideUp 0.6s ease-out;
+        }
+        
+        .animate-slide-in {
+            animation: slideIn 0.8s ease-out;
+        }
+        
+        .animate-pulse-slow {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
+        }
+        
+        /* 课件设置面板样式 */
+        .settings-panel {
+            background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
+        }
+        
+        .settings-item {
+            transition: all 0.3s ease;
+        }
+        
+        .settings-item:hover {
+            background-color: rgba(59, 130, 246, 0.05);
+            border-radius: 8px;
+            padding: 8px;
+            margin: -8px;
+        }
+        
+        .play-type-option {
+            transition: all 0.2s ease;
+            padding: 8px;
+            border-radius: 6px;
+            margin: -8px;
+        }
+        
+        .play-type-option:hover {
+            background-color: rgba(59, 130, 246, 0.05);
+        }
+        
+        .play-type-option input:checked + i + span {
+            color: #1976d2;
+            font-weight: 500;
+        }
+        
+        .score-control {
+            background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%);
+            border-radius: 8px;
+            padding: 12px;
+        }
+        
+        .score-btn {
+            width: 24px;
+            height: 24px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: white;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            transition: all 0.2s ease;
+        }
+        
+        .score-btn:hover {
+            background: #1976d2;
+            color: white;
+            transform: translateY(-1px);
+        }
+        
+        /* 保存按钮特效 */
+        .save-btn-loading {
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .save-btn-loading::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            animation: shimmer 1.5s infinite;
+        }
+        
+        @keyframes shimmer {
+            to {
+                left: 100%;
+            }
+        }
+        
+        /* 通知动画 */
+        .notification-slide-in {
+            animation: slideInFromRight 0.3s ease-out;
+        }
+        
+        @keyframes slideInFromRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- 顶部导航栏 -->
+    <nav class="bg-white border-b border-gray-200 sticky top-0 z-50">
+        <div class="px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center space-x-3">
+                    <button id="backBtn" class="flex items-center space-x-2 p-2 rounded-lg text-gray-600 hover:bg-gray-50 transition-colors">
+                        <i class="fas fa-arrow-left text-sm"></i>
+                        <span class="text-sm font-medium">未命名课程</span>
+                    </button>
+                    <span class="text-gray-300">|</span>
+                    <span class="text-xs text-gray-500">0字 | 未发布</span>
+                </div>
+                
+                <!-- 流程指示器 -->
+                <div class="flex items-center">
+                    <!-- 步骤1 -->
+                    <div class="step-indicator active">
+                        <div class="step-circle">1</div>
+                        <div class="step-text">基本信息</div>
+                    </div>
+                    
+                    <!-- 连接线1 -->
+                    <div class="step-line"></div>
+                    
+                    <!-- 步骤2 -->
+                    <div class="step-indicator">
+                        <div class="step-circle">2</div>
+                        <div class="step-text">课程目录</div>
+                    </div>
+                    
+                    <!-- 连接线2 -->
+                    <div class="step-line"></div>
+                    
+                    <!-- 步骤3 -->
+                    <div class="step-indicator">
+                        <div class="step-circle">3</div>
+                        <div class="step-text">发布设置</div>
+                    </div>
+                </div>
+                
+                <div class="flex items-center space-x-3">
+                    <button class="px-4 py-2 text-gray-600 hover:text-gray-800 text-sm font-medium transition-colors">
+                        存草稿
+                    </button>
+                    <button id="nextStepBtn" class="btn-primary">
+                        下一步
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+
+
+    <!-- 主要内容区域 -->
+    <div class="min-h-screen bg-gray-50">
+        <!-- AI助手提示 -->
+        <div id="aiStatus" class="hidden mb-4 bg-blue-50 border border-blue-200 rounded-lg p-4 mx-6">
+            <div class="flex items-center space-x-3">
+                <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center animate-pulse-slow">
+                    <i class="fas fa-robot text-white text-sm"></i>
+                </div>
+                <div>
+                    <p class="text-blue-800 font-medium">AI正在为您生成课程内容...</p>
+                    <p id="aiStatusText" class="text-blue-600 text-sm">正在分析您的需求和素材</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 步骤内容区域 -->
+        <div id="stepContent" class="content-card mx-6 mt-4 mb-6 p-8 min-h-0 relative">
+            <!-- 步骤1: 课程信息 -->
+            <div id="step1" class="step-content">
+                <div class="space-y-8">
+                    <!-- 标题 -->
+                    <div>
+                        <label class="form-label">
+                            <span class="required-mark">*</span>标题
+                        </label>
+                        <input type="text" id="courseTitle" class="form-input w-full" placeholder="请输入">
+                    </div>
+
+                    <!-- 分类 -->
+                    <div>
+                        <label class="form-label">
+                            <span class="required-mark">*</span>分类
+                        </label>
+                        <div class="flex items-center space-x-3">
+                            <select id="courseCategory" class="form-input flex-1">
+                                <option value="audio-video">音视频</option>
+                                <option value="sales">销售培训</option>
+                                <option value="management">管理培训</option>
+                                <option value="technical">技术培训</option>
+                                <option value="soft-skills">软技能</option>
+                            </select>
+                            <button class="btn-secondary">
+                                添加分类
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 封面图 -->
+                    <div>
+                        <label class="form-label">封面图</label>
+                        <div class="cover-image">
+                            <div class="cover-icon">
+                                <i class="fas fa-edit"></i>
+                            </div>
+                            <!-- 装饰元素 -->
+                            <div class="absolute -top-2 -left-2 w-3 h-3 bg-primary rounded-full opacity-60"></div>
+                            <div class="absolute -bottom-1 -right-1 w-4 h-4 bg-primary-light rounded-full opacity-40"></div>
+                            <div class="absolute top-3 -right-3 w-2 h-2 bg-blue-400 transform rotate-45 opacity-50"></div>
+                        </div>
+                        
+                        <!-- 更多信息展开区域 -->
+                        <div class="mt-4">
+                            <button id="moreInfoToggle" class="text-primary hover:text-primary-light text-sm flex items-center font-medium">
+                                <span>简介、标签、详师等详细信息</span>
+                                <i class="fas fa-chevron-up ml-2 transform transition-transform duration-200" id="moreInfoIcon"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 展开的更多信息区域 -->
+                    <div id="moreInfoSection" class="space-y-8 hidden">
+                        <!-- 课程简介 -->
+                        <div>
+                            <label class="form-label">课程简介</label>
+                            <!-- 富文本编辑器工具栏 -->
+                            <div class="editor-toolbar">
+                                <button class="editor-btn" title="标题">
+                                    <i class="fas fa-heading text-sm"></i>
+                                </button>
+                                <button class="editor-btn" title="加粗">
+                                    <i class="fas fa-bold text-sm"></i>
+                                </button>
+                                <button class="editor-btn" title="斜体">
+                                    <i class="fas fa-italic text-sm"></i>
+                                </button>
+                                <button class="editor-btn" title="下划线">
+                                    <i class="fas fa-underline text-sm"></i>
+                                </button>
+                                <button class="editor-btn" title="删除线">
+                                    <i class="fas fa-strikethrough text-sm"></i>
+                                </button>
+                                <div class="editor-divider"></div>
+                                <button class="editor-btn" title="文字颜色">
+                                    <i class="fas fa-palette text-sm"></i>
+                                </button>
+                                <button class="editor-btn" title="背景色">
+                                    <i class="fas fa-fill-drip text-sm"></i>
+                                </button>
+                                <div class="editor-divider"></div>
+                                <button class="editor-btn" title="链接">
+                                    <i class="fas fa-link text-sm"></i>
+                                </button>
+                                <button class="editor-btn" title="插入图片">
+                                    <i class="fas fa-image text-sm"></i>
+                                </button>
+                                <button class="editor-btn" title="列表">
+                                    <i class="fas fa-list text-sm"></i>
+                                </button>
+                                <button class="editor-btn" title="对齐">
+                                    <i class="fas fa-align-left text-sm"></i>
+                                </button>
+                                <button class="editor-btn" title="表格">
+                                    <i class="fas fa-table text-sm"></i>
+                                </button>
+                                <button class="editor-btn" title="撤销">
+                                    <i class="fas fa-undo text-sm"></i>
+                                </button>
+                                <button class="editor-btn" title="重做">
+                                    <i class="fas fa-redo text-sm"></i>
+                                </button>
+                            </div>
+                            <textarea id="courseDescription" rows="5" class="editor-textarea w-full" placeholder="请输入内容"></textarea>
+                            <div class="flex justify-between items-center mt-3">
+                                <span class="text-sm text-gray-500">0/5000</span>
+                                <div class="flex items-center space-x-3">
+                                    <button class="btn-primary flex items-center text-sm">
+                                        <i class="fas fa-magic mr-2 text-xs"></i>
+                                        AI生成简介
+                                    </button>
+                                    <span class="text-xs text-red-500">生成一次免费，按键至"AI智算生成"</span>
+                                </div>
+                                                                    </div>
+                            </div>
+                        </div>
+
+                        <!-- 其他更多信息字段... -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- 步骤2: 课程目录 -->
+            <div id="step2" class="step-content hidden">
+                <!-- 全屏布局 -->
+                <div class="fixed inset-0 top-16 bg-white z-30">
+                    <div class="flex h-full">
+                        <!-- 左侧目录栏 - 固定宽度 -->
+                        <div class="w-80 flex-shrink-0 bg-white border-r border-gray-200 flex flex-col">
+                        <!-- 目录头部 -->
+                        <div class="p-4 border-b border-gray-200">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="text-lg font-semibold text-gray-900">目录</h3>
+                                <button id="addContentBtn" class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center text-sm">
+                                    <i class="fas fa-plus mr-2"></i>
+                                    添加内容
+                                </button>
+                            </div>
+                            <button class="flex items-center text-gray-600 text-sm">
+                                <i class="fas fa-list mr-2"></i>
+                                <span>章节排序</span>
+                            </button>
+                        </div>
+                        
+                        <!-- 目录列表 -->
+                        <div class="flex-1 overflow-y-auto p-4">
+                            <div id="courseOutline" class="space-y-2">
+                                <!-- 目录内容将动态生成 -->
+                            </div>
+                        </div>
+                        
+                        <!-- 底部学习方式 -->
+                        <div class="p-4 border-t border-gray-200">
+                            <select class="w-full p-3 border border-gray-300 rounded-lg bg-white text-gray-900">
+                                <option value="free">自由式学习</option>
+                                <option value="sequential">顺序学习</option>
+                                <option value="guided">引导式学习</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                        <!-- 中间内容预览区 -->
+                        <div class="flex-1 bg-gray-50 flex flex-col">
+                            <!-- AI生成状态提示 -->
+                            <div id="previewAIStatus" class="bg-blue-50 border-b border-blue-200 p-4">
+                                <div class="space-y-3">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center animate-pulse">
+                                            <i class="fas fa-robot text-white text-xs"></i>
+                                        </div>
+                                        <span id="previewAIStatusText" class="text-blue-800 text-sm font-medium">AI正在生成课件内容...</span>
+                                    </div>
+                                    
+                                    <!-- 进度条 -->
+                                    <div class="w-full bg-gray-200 rounded-full h-1.5">
+                                        <div class="bg-blue-500 h-1.5 rounded-full transition-all duration-300 generation-progress" style="width: 0%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- 预览头部 -->
+                            <div id="previewHeader" class="bg-white border-b border-gray-200 p-4 opacity-0 transition-opacity duration-500">
+                                <div class="flex items-center justify-between mb-4">
+                                    <div class="flex items-center space-x-4">
+                                        <h4 id="currentLessonTitle" class="text-lg font-semibold text-gray-900">01 | 海尔数据分析</h4>
+                                        <div class="flex items-center space-x-4 text-sm text-gray-500">
+                                            <span>时长: <span id="currentLessonDuration">00:30:00</span></span>
+                                            <span>积分: <span id="currentLessonScore">5.4</span></span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- 预览/设置标签 -->
+                                <div class="flex space-x-6 mb-4">
+                                    <button class="preview-tab active px-4 py-2 text-blue-500 border-b-2 border-blue-500 font-medium">预览</button>
+                                    <button class="preview-tab px-4 py-2 text-gray-500 hover:text-gray-700">设置</button>
+                                </div>
+                                
+                                <!-- 操作按钮 -->
+                                <div class="flex space-x-3">
+                                    <button class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors">
+                                        重新上传
+                                    </button>
+                                    <button class="px-4 py-2 border border-blue-500 text-blue-500 rounded-lg hover:bg-blue-50 transition-colors">
+                                        修改课件
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <!-- 课件预览区 -->
+                            <div class="flex-1 flex items-center justify-center p-8">
+                                <!-- 加载中的占位符 -->
+                                <div id="previewPlaceholder" class="w-full h-96 bg-gray-200 rounded-lg flex items-center justify-center">
+                                    <div class="text-center">
+                                        <div class="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                                        <p class="text-gray-500">正在生成课件预览...</p>
+                                    </div>
+                                </div>
+                                
+                                <!-- 实际的课件预览 -->
+                                <div id="coursePreview" class="w-full h-96 relative rounded-lg overflow-hidden shadow-lg opacity-0 transition-opacity duration-1000">
+                                    <!-- 精美的课件预览背景 -->
+                                    <div class="w-full h-full bg-gradient-to-br from-orange-400 via-pink-400 to-blue-500 relative">
+                                        <!-- 3D金字塔效果 -->
+                                        <div class="absolute inset-0 flex items-center justify-center">
+                                            <div class="relative">
+                                                <!-- 主要内容区域 -->
+                                                <div class="text-center relative z-10">
+                                                    <h2 id="previewTitle1" class="text-4xl font-bold text-white mb-4 drop-shadow-lg opacity-0 transform translate-y-4 transition-all duration-800">数据驱动</h2>
+                                                    <h3 id="previewTitle2" class="text-4xl font-bold text-white mb-6 drop-shadow-lg opacity-0 transform translate-y-4 transition-all duration-800">业务增长</h3>
+                                                    <div id="previewBadge" class="inline-block bg-gradient-to-r from-orange-500 to-red-500 text-white px-6 py-2 rounded-full text-lg font-semibold shadow-lg opacity-0 transform translate-y-4 transition-all duration-800">
+                                                        专业数据分析课程
+                                                    </div>
+                                                </div>
+                                                
+                                                <!-- 3D金字塔 -->
+                                                <div id="previewPyramid" class="absolute right-16 top-8 transform opacity-0 transition-all duration-1000">
+                                                    <!-- 三层金字塔结构 -->
+                                                    <div class="relative">
+                                                        <!-- 顶层 - 橙色 -->
+                                                        <div class="pyramid-layer w-16 h-12 bg-gradient-to-r from-orange-400 to-orange-500 transform perspective-1000 rotateX-45 shadow-xl rounded-t-lg"></div>
+                                                        <!-- 中层 - 蓝色 -->
+                                                        <div class="pyramid-layer w-20 h-14 bg-gradient-to-r from-blue-400 to-blue-500 transform perspective-1000 rotateX-45 shadow-xl -mt-4 ml-2 animation-delay-200"></div>
+                                                        <!-- 底层 - 绿色 -->
+                                                        <div class="pyramid-layer w-24 h-16 bg-gradient-to-r from-green-400 to-green-500 transform perspective-1000 rotateX-45 shadow-xl -mt-6 ml-4 rounded-b-lg animation-delay-400"></div>
+                                                        
+                                                        <!-- 装饰圆环 -->
+                                                        <div class="absolute -bottom-4 left-1/2 transform -translate-x-1/2 w-32 h-8 bg-gradient-to-r from-blue-200 to-white opacity-60 rounded-full blur-sm"></div>
+                                                    </div>
+                                                    
+                                                    <!-- 播放按钮 -->
+                                                    <div id="previewPlayBtn" class="absolute -left-8 top-12 w-12 h-12 bg-white bg-opacity-20 backdrop-blur-sm rounded-full flex items-center justify-center shadow-lg opacity-0 transition-all duration-500">
+                                                        <i class="fas fa-play text-white text-lg ml-1"></i>
+                                                    </div>
+                                                </div>
+                                                
+                                                <!-- 装饰星星 -->
+                                                <div id="previewStars" class="opacity-0 transition-opacity duration-1000">
+                                                    <div class="absolute top-4 right-4 text-white opacity-80 animate-pulse">
+                                                        <i class="fas fa-star text-2xl"></i>
+                                                    </div>
+                                                    <div class="absolute top-12 right-12 text-white opacity-60 animate-pulse animation-delay-500">
+                                                        <i class="fas fa-star text-sm"></i>
+                                                    </div>
+                                                    <div class="absolute bottom-8 left-8 text-white opacity-70 animate-pulse animation-delay-1000">
+                                                        <i class="fas fa-star text-lg"></i>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 右侧课件设置面板 -->
+                        <div class="w-96 flex-shrink-0 bg-white border-l border-gray-200 flex flex-col settings-panel">
+                            <!-- 设置面板头部 -->
+                            <div class="p-4 border-b border-gray-200">
+                                <h3 class="text-lg font-semibold text-gray-900">课件设置</h3>
+                            </div>
+                            
+                            <!-- 设置内容 -->
+                            <div class="flex-1 overflow-y-auto p-4 space-y-6">
+                                <!-- 标题设置 -->
+                                <div class="settings-item">
+                                    <label class="form-label">标题</label>
+                                    <input type="text" id="lessonTitleInput" class="form-input w-full" placeholder="《习近平用典》第2集：治国的本事_习近平用典">
+                                </div>
+                                
+                                <!-- 音频文件 -->
+                                <div>
+                                    <label class="form-label">音频文件 <i class="fas fa-info-circle text-gray-400 ml-1"></i></label>
+                                    <div class="flex space-x-2">
+                                        <button class="btn-primary flex-1 text-sm">重新上传</button>
+                                        <button class="btn-secondary flex-1 text-sm">修改课件</button>
+                                    </div>
+                                    <p class="text-xs text-gray-500 mt-2">重新上传课件或者试看录制等其他设置模改课件</p>
+                                </div>
+                                
+                                <!-- 播放形式 -->
+                                <div>
+                                    <label class="form-label">播放形式</label>
+                                    <div class="space-y-2">
+                                        <label class="flex items-center">
+                                            <input type="radio" name="playType" value="audio" checked class="mr-3 text-blue-600 focus:ring-blue-500">
+                                            <i class="fas fa-volume-up text-blue-500 mr-2"></i>
+                                            <span class="text-sm">纯音频</span>
+                                        </label>
+                                        <label class="flex items-center">
+                                            <input type="radio" name="playType" value="pdf" class="mr-3 text-blue-600 focus:ring-blue-500">
+                                            <i class="fas fa-file-pdf text-red-500 mr-2"></i>
+                                            <span class="text-sm">音频配PDF</span>
+                                        </label>
+                                        <label class="flex items-center">
+                                            <input type="radio" name="playType" value="image" class="mr-3 text-blue-600 focus:ring-blue-500">
+                                            <i class="fas fa-image text-green-500 mr-2"></i>
+                                            <span class="text-sm">音频配图片</span>
+                                        </label>
+                                    </div>
+                                </div>
+                                
+                                <!-- 积分设置 -->
+                                <div>
+                                    <label class="form-label">积分 <i class="fas fa-info-circle text-gray-400 ml-1"></i></label>
+                                    <div class="flex items-center space-x-2">
+                                        <input type="number" id="lessonScore" class="form-input flex-1" value="2" min="0" step="0.1">
+                                        <button class="text-blue-500 text-sm px-2">
+                                            <i class="fas fa-chevron-up"></i>
+                                        </button>
+                                        <button class="text-blue-500 text-sm px-2">
+                                            <i class="fas fa-chevron-down"></i>
+                                        </button>
+                                    </div>
+                                    <p class="text-xs text-gray-500 mt-1">允许学员在PC端下载课件</p>
+                                </div>
+                                
+                                <!-- 保存按钮 -->
+                                <div class="pt-4">
+                                    <button id="saveSettings" class="btn-primary w-full">保存</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 步骤3: 发布设置 -->
+            <div id="step3" class="step-content hidden">
+                <!-- 全屏布局 -->
+                <div class="fixed inset-0 top-32 bg-white dark:bg-gray-900 z-30 overflow-y-auto">
+                    <div class="min-h-full flex flex-col">
+                        <!-- 主要内容区域 -->
+                        <div class="flex-1 p-8">
+                            <div class="max-w-4xl mx-auto space-y-8">
+                                <!-- 学员安排 -->
+                                <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+                                    <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-6">学员安排</h2>
+                                    
+                                    <!-- 必修学员 -->
+                                    <div class="mb-8">
+                                        <div class="flex items-center justify-between mb-4">
+                                            <div class="flex items-center space-x-2">
+                                                <span class="text-gray-900 dark:text-white font-medium">必修学员</span>
+                                                <span class="text-blue-500 text-sm cursor-pointer hover:underline">管理学员(已支持50人) ></span>
+                                            </div>
+                                            <button class="px-4 py-2 border border-blue-500 text-blue-500 rounded-md hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors text-sm">
+                                                + 选择学员
+                                            </button>
+                                        </div>
+                                        
+                                        <!-- 学员标签 -->
+                                        <div class="flex flex-wrap gap-2">
+                                            <span class="px-3 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full text-sm flex items-center">
+                                                黄波
+                                                <button class="ml-2 text-gray-400 hover:text-gray-600">×</button>
+                                            </span>
+                                            <span class="px-3 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full text-sm flex items-center">
+                                                黑桃
+                                                <button class="ml-2 text-gray-400 hover:text-gray-600">×</button>
+                                            </span>
+                                            <span class="px-3 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full text-sm flex items-center">
+                                                红桃
+                                                <button class="ml-2 text-gray-400 hover:text-gray-600">×</button>
+                                            </span>
+                                            <span class="px-3 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full text-sm flex items-center">
+                                                孙极强
+                                                <button class="ml-2 text-gray-400 hover:text-gray-600">×</button>
+                                            </span>
+                                            <span class="px-3 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full text-sm flex items-center">
+                                                王多鱼
+                                                <button class="ml-2 text-gray-400 hover:text-gray-600">×</button>
+                                            </span>
+                                            <span class="px-3 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full text-sm flex items-center">
+                                                用户组名称
+                                                <button class="ml-2 text-gray-400 hover:text-gray-600">×</button>
+                                            </span>
+                                            <span class="px-3 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full text-sm flex items-center">
+                                                用户组名称
+                                                <button class="ml-2 text-gray-400 hover:text-gray-600">×</button>
+                                            </span>
+                                            <span class="px-3 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full text-sm flex items-center">
+                                                部门名称名称名称
+                                                <button class="ml-2 text-gray-400 hover:text-gray-600">×</button>
+                                            </span>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- 选修学员 -->
+                                    <div class="mb-8">
+                                        <div class="flex items-center justify-between mb-4">
+                                            <div class="flex items-center space-x-2">
+                                                <span class="text-gray-900 dark:text-white font-medium">选修学员</span>
+                                                <span class="text-blue-500 text-sm cursor-pointer hover:underline">管理学员(已支持50人) ></span>
+                                            </div>
+                                            <button class="px-4 py-2 border border-blue-500 text-blue-500 rounded-md hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors text-sm">
+                                                + 选择学员
+                                            </button>
+                                        </div>
+                                        
+                                        <!-- 学员标签 -->
+                                        <div class="flex flex-wrap gap-2">
+                                            <span class="px-3 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full text-sm flex items-center">
+                                                黄波
+                                                <button class="ml-2 text-gray-400 hover:text-gray-600">×</button>
+                                            </span>
+                                            <span class="px-3 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full text-sm flex items-center">
+                                                黑桃
+                                                <button class="ml-2 text-gray-400 hover:text-gray-600">×</button>
+                                            </span>
+                                            <span class="px-3 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full text-sm flex items-center">
+                                                红桃
+                                                <button class="ml-2 text-gray-400 hover:text-gray-600">×</button>
+                                            </span>
+                                            <span class="px-3 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full text-sm flex items-center">
+                                                孙极强
+                                                <button class="ml-2 text-gray-400 hover:text-gray-600">×</button>
+                                            </span>
+                                            <span class="px-3 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full text-sm flex items-center">
+                                                王多鱼
+                                                <button class="ml-2 text-gray-400 hover:text-gray-600">×</button>
+                                            </span>
+                                            <span class="px-3 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full text-sm flex items-center">
+                                                用户组名称
+                                                <button class="ml-2 text-gray-400 hover:text-gray-600">×</button>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- 学习设置 -->
+                                <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+                                    <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">学习设置</h2>
+                                    <p class="text-gray-600 dark:text-gray-400 text-sm mb-6">请选择一个版本或直接升级，变更后请注意定义课程设置</p>
+                                    
+                                    <!-- 模板选择 -->
+                                    <div class="grid md:grid-cols-3 gap-6 mb-8">
+                                        <!-- 默认模板 -->
+                                        <div class="border border-gray-200 dark:border-gray-600 rounded-lg p-4 relative">
+                                            <div class="absolute top-4 right-4">
+                                                <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">使用中</span>
+                                            </div>
+                                            <h3 class="font-medium text-gray-900 dark:text-white mb-3">默认模板</h3>
+                                            <p class="text-gray-600 dark:text-gray-400 text-sm mb-4">适用于普通学习类型的课程，较为简单或者自由自主学习</p>
+                                            <div class="flex space-x-2">
+                                                <button class="px-3 py-1 text-blue-500 border border-blue-500 rounded text-sm hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors">详情</button>
+                                                <button class="px-3 py-1 bg-blue-500 text-white rounded text-sm hover:bg-blue-600 transition-colors">使用</button>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- 严格监督型模板 -->
+                                        <div class="border border-gray-200 dark:border-gray-600 rounded-lg p-4">
+                                            <h3 class="font-medium text-gray-900 dark:text-white mb-3">严格监督型模板</h3>
+                                            <p class="text-gray-600 dark:text-gray-400 text-sm mb-4">适用于必修、合规类课程，强化学习过程监控</p>
+                                            <div class="flex space-x-2">
+                                                <button class="px-3 py-1 text-blue-500 border border-blue-500 rounded text-sm hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors">详情</button>
+                                                <button class="px-3 py-1 bg-blue-500 text-white rounded text-sm hover:bg-blue-600 transition-colors">使用</button>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- 灵活学习型模板 -->
+                                        <div class="border border-gray-200 dark:border-gray-600 rounded-lg p-4">
+                                            <h3 class="font-medium text-gray-900 dark:text-white mb-3">灵活学习型模板</h3>
+                                            <p class="text-gray-600 dark:text-gray-400 text-sm mb-4">适用于选择性和灵活性的课程，营造学员自由自主学习</p>
+                                            <div class="flex space-x-2">
+                                                <button class="px-3 py-1 text-blue-500 border border-blue-500 rounded text-sm hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors">详情</button>
+                                                <button class="px-3 py-1 bg-blue-500 text-white rounded text-sm hover:bg-blue-600 transition-colors">使用</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="text-right">
+                                        <span class="text-blue-500 text-sm cursor-pointer hover:underline">更多设置模板 ></span>
+                                    </div>
+                                </div>
+                                
+                                <!-- 折叠面板 -->
+                                <div class="space-y-4">
+                                    <!-- 消息提醒 -->
+                                    <div class="border border-gray-200 dark:border-gray-600 rounded-lg">
+                                        <button class="w-full flex items-center justify-between p-4 text-left hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors collapsible-toggle" data-target="notifications">
+                                            <div class="flex items-center space-x-3">
+                                                <div class="w-1 h-6 bg-blue-500 rounded"></div>
+                                                <span class="font-medium text-gray-900 dark:text-white">消息提醒</span>
+                                            </div>
+                                            <i class="fas fa-chevron-up text-gray-400 transition-transform collapsible-icon"></i>
+                                        </button>
+                                        <div class="collapsible-content p-4 pt-0" id="notifications">
+                                            <div class="space-y-3">
+                                                <div>
+                                                    <h4 class="font-medium text-gray-900 dark:text-white mb-2">推送待办通知</h4>
+                                                    <p class="text-gray-600 dark:text-gray-400 text-sm">指派范围内学员的课程信息以其他方式提示，课程推送成设改通知，系统自动更新相关人员</p>
+                                                </div>
+                                                <div>
+                                                    <h4 class="font-medium text-gray-900 dark:text-white mb-2">推荐学习提醒设置</h4>
+                                                    <p class="text-gray-600 dark:text-gray-400 text-sm">根据能进读期间的未完成课程的必修学员具体学习同提醒</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- 学习模式 -->
+                                    <div class="border border-gray-200 dark:border-gray-600 rounded-lg">
+                                        <button class="w-full flex items-center justify-between p-4 text-left hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors collapsible-toggle" data-target="learning-mode">
+                                            <div class="flex items-center space-x-3">
+                                                <div class="w-1 h-6 bg-blue-500 rounded"></div>
+                                                <span class="font-medium text-gray-900 dark:text-white">学习模式</span>
+                                            </div>
+                                            <i class="fas fa-chevron-down text-gray-400 transition-transform collapsible-icon"></i>
+                                        </button>
+                                        <div class="collapsible-content hidden" id="learning-mode">
+                                            <div class="p-4 pt-0">
+                                                <p class="text-gray-600 dark:text-gray-400 text-sm">学习模式设置内容...</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- 学习监控 -->
+                                    <div class="border border-gray-200 dark:border-gray-600 rounded-lg">
+                                        <button class="w-full flex items-center justify-between p-4 text-left hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors collapsible-toggle" data-target="learning-monitor">
+                                            <div class="flex items-center space-x-3">
+                                                <div class="w-1 h-6 bg-blue-500 rounded"></div>
+                                                <span class="font-medium text-gray-900 dark:text-white">学习监控</span>
+                                            </div>
+                                            <i class="fas fa-chevron-down text-gray-400 transition-transform collapsible-icon"></i>
+                                        </button>
+                                        <div class="collapsible-content hidden" id="learning-monitor">
+                                            <div class="p-4 pt-0">
+                                                <p class="text-gray-600 dark:text-gray-400 text-sm">学习监控设置内容...</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- 其他 -->
+                                    <div class="border border-gray-200 dark:border-gray-600 rounded-lg">
+                                        <button class="w-full flex items-center justify-between p-4 text-left hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors collapsible-toggle" data-target="others">
+                                            <div class="flex items-center space-x-3">
+                                                <div class="w-1 h-6 bg-blue-500 rounded"></div>
+                                                <span class="font-medium text-gray-900 dark:text-white">其他</span>
+                                            </div>
+                                            <i class="fas fa-chevron-down text-gray-400 transition-transform collapsible-icon"></i>
+                                        </button>
+                                        <div class="collapsible-content hidden" id="others">
+                                            <div class="p-4 pt-0">
+                                                <p class="text-gray-600 dark:text-gray-400 text-sm">其他设置内容...</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 底部操作区域 -->
+                        <div class="border-t border-gray-200 dark:border-gray-700 p-6 bg-gray-50 dark:bg-gray-800">
+                            <div class="max-w-4xl mx-auto flex justify-between items-center">
+                                <div class="flex items-center space-x-4">
+                                    <span class="text-gray-500 text-sm">未发布 | 最新编辑 2025-05-26 14:53:51</span>
+                                    <button class="px-4 py-2 text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-100 transition-colors">
+                                        存草稿
+                                    </button>
+                                </div>
+                                <button id="publishBtn" class="px-6 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors">
+                                    发布
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // 全局状态管理
+        const AppState = {
+            currentStep: 1,
+            maxStep: 3,
+            courseData: {},
+            isGenerating: false,
+            isEditMode: false  // 编辑模式标志
+        };
+
+        // 初始化折叠面板
+        function initCollapsiblePanels() {
+            const toggles = document.querySelectorAll('.collapsible-toggle');
+            
+            toggles.forEach(toggle => {
+                toggle.addEventListener('click', () => {
+                    const targetId = toggle.getAttribute('data-target');
+                    const content = document.getElementById(targetId);
+                    const icon = toggle.querySelector('.collapsible-icon');
+                    
+                    if (content.classList.contains('hidden')) {
+                        content.classList.remove('hidden');
+                        icon.style.transform = 'rotate(180deg)';
+                    } else {
+                        content.classList.add('hidden');
+                        icon.style.transform = 'rotate(0deg)';
+                    }
+                });
+            });
+        }
+
+        // 初始化应用
+        function initApp() {
+            // 获取传递的数据
+            const courseData = JSON.parse(sessionStorage.getItem('courseCreationData') || sessionStorage.getItem('courseData') || '{}');
+            AppState.courseData = courseData;
+            
+            console.log('加载的课程数据:', courseData);
+            
+            // 如果有课程数据，可能需要跳转到相应步骤
+            if (courseData && Object.keys(courseData).length > 0) {
+                console.log('检测到课程数据，开始生成流程');
+            }
+            
+            // 初始化事件监听器
+            initEventListeners();
+            
+            // 初始化折叠面板
+            initCollapsiblePanels();
+            
+            // 初始化步骤指示器状态
+            updateStepIndicator();
+            
+            // 开始AI生成流程
+            startAIGeneration();
+        }
+
+        // 初始化事件监听器
+        function initEventListeners() {
+            document.getElementById('backBtn').addEventListener('click', () => {
+                window.history.back();
+            });
+
+            document.getElementById('nextStepBtn').addEventListener('click', () => {
+                // 如果是编辑模式，直接跳转到 course-editor 页面
+                if (AppState.isEditMode) {
+                    // 保存当前基本信息
+                    saveBasicInfo();
+                    
+                    // 跳转到 course-editor 页面
+                    window.open('course-editor.html', '_blank');
+                    return;
+                }
+                
+                // 正常的步骤跳转逻辑
+                if (AppState.currentStep < AppState.maxStep) {
+                    changeStep(AppState.currentStep + 1);
+                } else {
+                    finishCourse();
+                }
+            });
+
+            // 更多信息展开/收起
+            const moreInfoToggle = document.getElementById('moreInfoToggle');
+            if (moreInfoToggle) {
+                moreInfoToggle.addEventListener('click', () => {
+                    const section = document.getElementById('moreInfoSection');
+                    const icon = document.getElementById('moreInfoIcon');
+                    
+                    if (section && icon) {
+                        if (section.classList.contains('hidden')) {
+                            section.classList.remove('hidden');
+                            icon.style.transform = 'rotate(0deg)';
+                        } else {
+                            section.classList.add('hidden');
+                            icon.style.transform = 'rotate(180deg)';
+                        }
+                    }
+                });
+            }
+
+            // 字符计数
+            const textarea = document.getElementById('courseDescription');
+            if (textarea) {
+                const counter = textarea.parentElement.querySelector('.text-sm.text-gray-500');
+                if (counter) {
+                    textarea.addEventListener('input', () => {
+                        const count = textarea.value.length;
+                        counter.textContent = `${count}/5000`;
+                    });
+                }
+            }
+
+            // 初始化课件设置面板事件
+            initLessonSettingsEvents();
+        }
+
+        // 更新AI状态显示
+        function updateAIStatus(text, type = 'generating') {
+            const aiStatus = document.getElementById('aiStatus');
+            const aiStatusText = document.getElementById('aiStatusText');
+            
+            if (type === 'generating') {
+                aiStatus.classList.remove('hidden');
+                aiStatus.className = 'mb-6 bg-blue-50 border border-blue-200 rounded-lg p-4 mx-6';
+                aiStatusText.textContent = text;
+            } else if (type === 'completed') {
+                aiStatus.classList.remove('hidden');
+                aiStatus.className = 'mb-6 bg-green-50 border border-green-200 rounded-lg p-4 mx-6';
+                aiStatusText.textContent = text;
+                
+                // 更新图标为完成状态
+                const icon = aiStatus.querySelector('i');
+                if (icon) {
+                    icon.className = 'fas fa-check text-white text-sm';
+                    icon.parentElement.className = 'w-8 h-8 bg-green-500 rounded-full flex items-center justify-center';
+                }
+                
+                setTimeout(() => {
+                    aiStatus.classList.add('hidden');
+                }, 3000);
+            }
+        }
+
+        // 更改步骤
+        function changeStep(step) {
+            // 隐藏当前步骤
+            document.getElementById(`step${AppState.currentStep}`).classList.add('hidden');
+            
+            // 显示新步骤
+            document.getElementById(`step${step}`).classList.remove('hidden');
+            
+            // 更新状态
+            AppState.currentStep = step;
+            
+            // 更新步骤指示器
+            updateStepIndicator();
+            
+            // 如果步骤还没有生成内容，则生成
+            if (step > 1 && !AppState[`step${step}Generated`]) {
+                generateStepContent(step);
+            }
+        }
+
+        // 更新步骤指示器
+        function updateStepIndicator() {
+            const indicators = document.querySelectorAll('.step-indicator');
+            const lines = document.querySelectorAll('.step-line');
+            
+            console.log('更新步骤指示器 - 当前步骤:', AppState.currentStep);
+            console.log('找到的指示器数量:', indicators.length);
+            console.log('找到的连接线数量:', lines.length);
+            
+            indicators.forEach((indicator, index) => {
+                const stepNum = index + 1;
+                
+                console.log(`步骤 ${stepNum}: 是否激活 =`, stepNum <= AppState.currentStep);
+                
+                if (stepNum <= AppState.currentStep) {
+                    // 激活状态
+                    indicator.classList.add('active');
+                } else {
+                    // 未激活状态
+                    indicator.classList.remove('active');
+                }
+            });
+            
+            lines.forEach((line, index) => {
+                if (index < AppState.currentStep - 1) {
+                    // 已完成的连接线
+                    line.classList.add('active');
+                } else {
+                    // 未完成的连接线
+                    line.classList.remove('active');
+                }
+            });
+        }
+
+
+
+        // 开始AI生成流程
+        function startAIGeneration() {
+            AppState.isGenerating = true;
+            
+            // 显示AI状态
+            updateAIStatus("正在分析您的需求和素材", 'generating');
+            
+            const statusTexts = [
+                "正在分析您的需求和素材",
+                "正在生成课程基本信息", 
+                "正在优化课程结构",
+                "正在完善课程内容"
+            ];
+            
+            let currentTextIndex = 0;
+            
+            const updateStatus = () => {
+                const aiStatusText = document.getElementById('aiStatusText');
+                if (aiStatusText) {
+                    aiStatusText.textContent = statusTexts[currentTextIndex];
+                    currentTextIndex = (currentTextIndex + 1) % statusTexts.length;
+                }
+            };
+            
+            const statusInterval = setInterval(updateStatus, 2000);
+            
+            // 模拟AI生成过程
+            setTimeout(() => {
+                clearInterval(statusInterval);
+                updateAIStatus("正在生成课程基本信息...", 'generating');
+                
+                setTimeout(() => {
+                    generateStepContent(1);
+                }, 1000);
+            }, 6000);
+        }
+
+        // 生成步骤内容
+        function generateStepContent(step) {
+            switch(step) {
+                case 1:
+                    generateCourseInfo();
+                    break;
+                case 2:
+                    generateCourseOutline();
+                    break;
+                case 3:
+                    generatePublishSettings();
+                    break;
+            }
+            AppState[`step${step}Generated`] = true;
+        }
+
+        // 生成课程信息
+        function generateCourseInfo() {
+            const courseData = AppState.courseData;
+            
+            // 首先展开更多信息区域
+            setTimeout(() => {
+                const section = document.getElementById('moreInfoSection');
+                const icon = document.getElementById('moreInfoIcon');
+                if (section && icon) {
+                    section.classList.remove('hidden');
+                    icon.style.transform = 'rotate(0deg)';
+                }
+            }, 500);
+            
+            // 模拟打字机效果填写标题
+            setTimeout(() => {
+                const title = courseData.title || '数据分析专业培训课程';
+                typeText('courseTitle', title, 50);
+            }, 1000);
+            
+            // 设置分类
+            setTimeout(() => {
+                const categorySelect = document.getElementById('courseCategory');
+                if (categorySelect) {
+                    categorySelect.value = 'technical';
+                }
+            }, 2000);
+            
+            // 生成课程描述
+            setTimeout(() => {
+                const description = courseData.outline === 'A' 
+                    ? '本课程采用标准流程型教学方式，系统性地介绍数据分析的核心理论和实践方法，帮助学员快速掌握数据分析的基本技能。课程包含理论讲解、实操演示和随堂练习，通过海尔等企业真实案例，确保学员能够熟练运用数据分析工具进行实际业务分析工作。'
+                    : '本课程采用任务驱动的实践教学方式，通过CRM系统的具体实操任务，让新员工在实际操作中掌握客户关系管理的使用技巧。每个任务都有明确的目标和步骤指导，学员可以边学边练，快速提升实际工作能力。';
+                
+                typeText('courseDescription', description, 20);
+                
+                // 更新字符计数
+                setTimeout(() => {
+                    const textarea = document.getElementById('courseDescription');
+                    const counter = textarea.parentElement.querySelector('.text-sm.text-gray-500');
+                    if (counter) {
+                        let currentCount = 0;
+                        const countInterval = setInterval(() => {
+                            currentCount = textarea.value.length;
+                            counter.textContent = `${currentCount}/5000`;
+                            if (currentCount >= description.length) {
+                                clearInterval(countInterval);
+                            }
+                        }, 100);
+                    }
+                }, 500);
+                
+                // 描述填写完成后，等待2秒后自动跳转到第二步
+                setTimeout(() => {
+                    updateAIStatus('课程信息已完成，正在生成课程目录...', 'completed');
+                    
+                    setTimeout(() => {
+                        changeStep(2);
+                    }, 1500);
+                }, Math.ceil(description.length * 20) + 2000);
+            }, 3000);
+        }
+
+        // 打字机效果
+        function typeText(elementId, text, speed = 50) {
+            const element = document.getElementById(elementId);
+            element.value = '';
+            let i = 0;
+            
+            const typeInterval = setInterval(() => {
+                if (i < text.length) {
+                    element.value += text.charAt(i);
+                    i++;
+                } else {
+                    clearInterval(typeInterval);
+                }
+            }, speed);
+        }
+
+        // 生成课程大纲
+        function generateCourseOutline() {
+            const container = document.getElementById('courseOutline');
+            const courseData = AppState.courseData;
+            
+            const outlines = {
+                'A': [
+                    { 
+                        title: '数据分析基础', 
+                        lessons: [
+                            { title: '海尔数据分析', duration: '00:30:00', score: '5.4' },
+                            { title: 'Excel常用功能解析Excel常用功能解析...', duration: '00:25:00', score: '4.8' },
+                            { title: '数据分析方式与层次', duration: '00:35:00', score: '6.2' }
+                        ]
+                    },
+                    { 
+                        title: '数据分析模型', 
+                        lessons: [
+                            { title: '回归分析模型', duration: '00:40:00', score: '7.1' },
+                            { title: '聚类分析方法', duration: '00:30:00', score: '5.9' },
+                            { title: '时间序列分析', duration: '00:45:00', score: '8.3' }
+                        ]
+                    },
+                    { 
+                        title: '行业数据分析', 
+                        lessons: [
+                            { title: '电商行业数据分析', duration: '00:35:00', score: '6.7' },
+                            { title: '金融行业数据挖掘', duration: '00:50:00', score: '9.1' },
+                            { title: '制造业数据应用', duration: '00:30:00', score: '5.6' },
+                            { title: '服务业数据洞察', duration: '00:40:00', score: '7.3' },
+                            { title: '零售业数据策略', duration: '00:35:00', score: '6.8' },
+                            { title: '医疗行业数据分析', duration: '00:45:00', score: '8.5' }
+                        ]
+                    },
+                    { 
+                        title: '店铺数据分析', 
+                        lessons: [
+                            { title: '流量数据分析', duration: '00:25:00', score: '4.9' },
+                            { title: '转化率优化分析', duration: '00:35:00', score: '6.5' },
+                            { title: '用户行为分析', duration: '00:40:00', score: '7.8' },
+                            { title: '商品销售数据分析', duration: '00:30:00', score: '5.7' },
+                            { title: '营销效果分析', duration: '00:35:00', score: '6.9' },
+                            { title: '竞品数据对比分析', duration: '00:45:00', score: '8.2' }
+                        ]
+                    }
+                ],
+                'B': [
+                    { 
+                        title: 'CRM系统入门', 
+                        lessons: [
+                            { title: '录入你的第一个客户', duration: '00:20:00', score: '4.2' },
+                            { title: '客户信息管理技巧', duration: '00:25:00', score: '5.1' },
+                            { title: '客户分类与标签', duration: '00:30:00', score: '5.8' }
+                        ]
+                    },
+                    { 
+                        title: '销售线索管理', 
+                        lessons: [
+                            { title: '创建并跟进销售线索', duration: '00:35:00', score: '6.3' },
+                            { title: '线索转化技巧', duration: '00:40:00', score: '7.2' },
+                            { title: '跟进记录标准化', duration: '00:25:00', score: '4.9' }
+                        ]
+                    }
+                ]
+            };
+            
+            const selectedOutline = outlines[courseData.outline || 'A'];
+            
+            // 开始逐个小节生成
+            setTimeout(() => {
+                generateLessonByLesson(selectedOutline, container);
+            }, 800);
+        }
+        
+        // 逐个小节生成函数
+        function generateLessonByLesson(outline, container) {
+            let currentChapter = 0;
+            let currentLesson = 0;
+            let totalLessons = 0;
+            let completedLessons = 0;
+            
+            // 计算总课程数
+            outline.forEach(chapter => {
+                totalLessons += chapter.lessons.length;
+            });
+            
+            // 当前生成的章节容器
+            let currentChapterDiv = null;
+            let currentLessonsContainer = null;
+            
+            // 显示AI状态和进度条
+            const aiStatus = document.getElementById('previewAIStatus');
+            const progressBar = document.querySelector('.generation-progress');
+            aiStatus.style.display = 'block';
+            if (progressBar) {
+                progressBar.style.width = '0%';
+            }
+            
+            const generateNextLesson = () => {
+                if (currentChapter >= outline.length) {
+                    // 所有课程生成完成
+                    setTimeout(() => {
+                        // 显示最终完成状态
+                        const aiStatus = document.getElementById('previewAIStatus');
+                        const statusText = document.getElementById('previewAIStatusText');
+                        const progressBar = document.querySelector('.generation-progress');
+                        
+                        // 确保AI状态区域可见
+                        aiStatus.style.display = 'block';
+                        
+                        // 进度条完成动画
+                        if (progressBar) {
+                            progressBar.style.width = '100%';
+                        }
+                        statusText.textContent = `🎉 课程目录生成完成！共生成${totalLessons}节精品课程`;
+                        
+                        setTimeout(() => {
+                            statusText.textContent = '正在准备发布设置和高级配置...';
+                            
+                            setTimeout(() => {
+                                // 隐藏AI状态，显示编辑选项
+                                aiStatus.style.display = 'none';
+                                showCourseCompletionOptions();
+                            }, 1500);
+                        }, 2000);
+                    }, 1000);
+                    return;
+                }
+                
+                const chapter = outline[currentChapter];
+                
+                // 如果是新章节，先创建章节标题
+                if (currentLesson === 0) {
+                    currentChapterDiv = document.createElement('div');
+                    currentChapterDiv.className = 'animate-fade-in';
+                    
+                    currentChapterDiv.innerHTML = `
+                        <div class="chapter-container">
+                            <button class="w-full flex items-center justify-between p-3 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors chapter-toggle" data-chapter="${currentChapter}">
+                                <div class="flex items-center space-x-3">
+                                    <i class="fas fa-chevron-down text-gray-400 text-sm transform transition-transform chapter-icon"></i>
+                                    <span class="font-medium text-gray-900 dark:text-white">${['一', '二', '三', '四'][currentChapter]}、${chapter.title}(${chapter.lessons.length}节)</span>
+                                </div>
+                            </button>
+                            <div class="ml-6 space-y-1 chapter-lessons">
+                                <!-- 课程将在这里逐个添加 -->
+                            </div>
+                        </div>
+                    `;
+                    
+                    container.appendChild(currentChapterDiv);
+                    currentLessonsContainer = currentChapterDiv.querySelector('.chapter-lessons');
+                    
+                    // 添加章节折叠功能
+                    const toggleBtn = currentChapterDiv.querySelector('.chapter-toggle');
+                    const icon = currentChapterDiv.querySelector('.chapter-icon');
+                    
+                    toggleBtn.addEventListener('click', () => {
+                        if (currentLessonsContainer.style.display === 'none') {
+                            currentLessonsContainer.style.display = 'block';
+                            icon.style.transform = 'rotate(0deg)';
+                        } else {
+                            currentLessonsContainer.style.display = 'none';
+                            icon.style.transform = 'rotate(-90deg)';
+                        }
+                    });
+                }
+                
+                // 添加当前课程
+                const lesson = chapter.lessons[currentLesson];
+                const lessonDiv = document.createElement('div');
+                lessonDiv.className = `lesson-item cursor-pointer p-2 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors animate-slide-in`;
+                lessonDiv.dataset.lesson = `${currentChapter}-${currentLesson}`;
+                
+                lessonDiv.innerHTML = `
+                    <div class="text-sm text-gray-700 dark:text-gray-300">
+                        ${String(currentLesson + 1).padStart(2, '0')} | ${lesson.title}
+                    </div>
+                `;
+                
+                // 添加点击事件
+                lessonDiv.addEventListener('click', () => {
+                    // 移除所有选中状态
+                    document.querySelectorAll('.lesson-item').forEach(l => {
+                        l.classList.remove('bg-blue-50', 'dark:bg-blue-900/30', 'border-l-2', 'border-blue-500');
+                    });
+                    
+                    // 添加选中状态
+                    lessonDiv.classList.add('bg-blue-50', 'dark:bg-blue-900/30', 'border-l-2', 'border-blue-500');
+                    
+                    // 更新右侧预览内容
+                    updateLessonPreview(lesson, currentChapter, currentLesson);
+                    generateLessonContent(lesson, completedLessons);
+                });
+                
+                currentLessonsContainer.appendChild(lessonDiv);
+                
+                // 立即设置当前课程为选中状态并更新右侧内容
+                setTimeout(() => {
+                    // 移除之前选中的状态
+                    document.querySelectorAll('.lesson-item').forEach(l => {
+                        l.classList.remove('bg-blue-50', 'dark:bg-blue-900/30', 'border-l-2', 'border-blue-500');
+                    });
+                    
+                    // 设置当前课程为选中状态
+                    lessonDiv.classList.add('bg-blue-50', 'dark:bg-blue-900/30', 'border-l-2', 'border-blue-500');
+                    
+                    // 更新右侧预览内容
+                    updateLessonPreview(lesson, currentChapter, currentLesson);
+                    
+                    // 生成当前课程的内容，生成完毕后再继续下一个
+                    generateLessonContentWithCallback(lesson, completedLessons, () => {
+                        // 内容生成完毕，继续生成下一个课程
+                        completedLessons++;
+                        updateGenerationProgress(completedLessons, totalLessons, lesson.title);
+                        
+                        // 移动到下一个课程
+                        currentLesson++;
+                        if (currentLesson >= chapter.lessons.length) {
+                            currentLesson = 0;
+                            currentChapter++;
+                        }
+                        
+                        // 延迟生成下一个课程
+                        setTimeout(generateNextLesson, 800);
+                    });
+                }, 300);
+            };
+            
+            // 开始生成
+            generateNextLesson();
+        }
+        
+        // 更新生成进度
+        function updateGenerationProgress(completed, total, currentTitle) {
+            const progress = Math.round((completed / total) * 100);
+            
+            // 更新进度条
+            const progressBar = document.querySelector('.generation-progress');
+            if (progressBar) {
+                progressBar.style.width = `${progress}%`;
+            }
+            
+            // 更新进度状态文本（仅在课件生成完成时调用）
+            const statusText = document.getElementById('previewAIStatusText');
+            if (completed === total) {
+                statusText.textContent = `课程目录生成完成！共生成${total}节课程`;
+            }
+            
+            // 确保AI状态提示可见
+            const aiStatus = document.getElementById('previewAIStatus');
+            if (aiStatus && aiStatus.style.display === 'none') {
+                aiStatus.style.display = 'block';
+            }
+        }
+        
+        // 生成课程内容（右侧预览）
+        function generateLessonContent(lesson, lessonIndex) {
+            generateLessonContentWithCallback(lesson, lessonIndex);
+        }
+        
+        // 生成课程内容带回调
+        function generateLessonContentWithCallback(lesson, lessonIndex, callback) {
+            const statusText = document.getElementById('previewAIStatusText');
+            const placeholder = document.getElementById('previewPlaceholder');
+            const preview = document.getElementById('coursePreview');
+            const header = document.getElementById('previewHeader');
+            
+            // 显示生成状态
+            document.getElementById('previewAIStatus').style.display = 'block';
+            header.style.opacity = '0.5';
+            placeholder.style.display = 'block';
+            preview.style.opacity = '0';
+            
+            const steps = [
+                `正在分析 "${lesson.title}" 的教学内容...`,
+                `正在为 "${lesson.title}" 设计课件结构...`,
+                `正在生成 "${lesson.title}" 的视觉效果...`,
+                `"${lesson.title}" 课件生成完成！`
+            ];
+            
+            let stepIndex = 0;
+            const updateStep = () => {
+                if (stepIndex < steps.length - 1) {
+                    statusText.textContent = steps[stepIndex];
+                    stepIndex++;
+                    setTimeout(updateStep, 600);
+                } else {
+                    statusText.textContent = steps[stepIndex];
+                    
+                    // 生成完成，显示预览
+                    setTimeout(() => {
+                        // 更新课件内容为当前课程
+                        updateCoursePreviewContent(lesson);
+                        
+                        // 先显示课件
+                        placeholder.style.display = 'none';
+                        preview.style.opacity = '1';
+                        header.style.opacity = '1';
+                        
+                        // 重新播放预览动画
+                        resetAndPlayPreviewAnimations();
+                        
+                        // 稍后隐藏状态提示
+                        setTimeout(() => {
+                            document.getElementById('previewAIStatus').style.display = 'none';
+                            
+                            // 如果有回调函数，执行回调
+                            if (callback && typeof callback === 'function') {
+                                setTimeout(callback, 300);
+                            }
+                        }, 1200);
+                    }, 800);
+                }
+            };
+            
+            setTimeout(updateStep, 300);
+        }
+        
+        // 更新课件预览内容
+        function updateCoursePreviewContent(lesson) {
+            const title1 = document.getElementById('previewTitle1');
+            const title2 = document.getElementById('previewTitle2');
+            const badge = document.getElementById('previewBadge');
+            const previewBg = document.querySelector('#coursePreview .w-full.h-full');
+            
+            // 根据课程内容更新标题和背景
+            const titles = generateCoursePreviewTitles(lesson);
+            title1.textContent = titles.title1;
+            title2.textContent = titles.title2;
+            badge.textContent = titles.badge;
+            
+            // 更新背景渐变色
+            if (previewBg) {
+                previewBg.className = `w-full h-full ${titles.bgClass} relative transition-all duration-1000`;
+            }
+            
+            // 更新徽章颜色
+            if (badge) {
+                badge.className = `inline-block ${titles.badgeClass} text-white px-6 py-2 rounded-full text-lg font-semibold shadow-lg opacity-0 transform translate-y-4 transition-all duration-800`;
+            }
+        }
+        
+        // 生成课程预览标题
+        function generateCoursePreviewTitles(lesson) {
+            const lessonTitle = lesson.title;
+            
+            // 根据课程标题生成相应的预览内容
+            if (lessonTitle.includes('数据分析') || lessonTitle.includes('Excel')) {
+                return {
+                    title1: '数据驱动',
+                    title2: '业务增长',
+                    badge: '专业数据分析课程',
+                    bgClass: 'bg-gradient-to-br from-blue-400 via-purple-400 to-indigo-500',
+                    badgeClass: 'bg-gradient-to-r from-blue-500 to-indigo-500'
+                };
+            } else if (lessonTitle.includes('海尔')) {
+                return {
+                    title1: '企业案例',
+                    title2: '实战分析',
+                    badge: '海尔数据分析案例',
+                    bgClass: 'bg-gradient-to-br from-green-400 via-teal-400 to-cyan-500',
+                    badgeClass: 'bg-gradient-to-r from-green-500 to-teal-500'
+                };
+            } else if (lessonTitle.includes('模型') || lessonTitle.includes('回归') || lessonTitle.includes('聚类')) {
+                return {
+                    title1: '算法模型',
+                    title2: '深度解析',
+                    badge: '高级分析模型课程',
+                    bgClass: 'bg-gradient-to-br from-purple-400 via-pink-400 to-red-500',
+                    badgeClass: 'bg-gradient-to-r from-purple-500 to-pink-500'
+                };
+            } else if (lessonTitle.includes('行业')) {
+                return {
+                    title1: '行业洞察',
+                    title2: '数据应用',
+                    badge: '行业数据分析专题',
+                    bgClass: 'bg-gradient-to-br from-yellow-400 via-orange-400 to-red-500',
+                    badgeClass: 'bg-gradient-to-r from-yellow-500 to-orange-500'
+                };
+            } else if (lessonTitle.includes('电商') || lessonTitle.includes('金融') || lessonTitle.includes('制造')) {
+                return {
+                    title1: '垂直领域',
+                    title2: '深度剖析',
+                    badge: '专业领域数据课程',
+                    bgClass: 'bg-gradient-to-br from-indigo-400 via-blue-400 to-cyan-500',
+                    badgeClass: 'bg-gradient-to-r from-indigo-500 to-blue-500'
+                };
+            } else if (lessonTitle.includes('店铺') || lessonTitle.includes('流量') || lessonTitle.includes('转化')) {
+                return {
+                    title1: '运营优化',
+                    title2: '实战指南',
+                    badge: '店铺数据运营课程',
+                    bgClass: 'bg-gradient-to-br from-pink-400 via-rose-400 to-orange-500',
+                    badgeClass: 'bg-gradient-to-r from-pink-500 to-rose-500'
+                };
+            } else if (lessonTitle.includes('CRM') || lessonTitle.includes('客户')) {
+                return {
+                    title1: '客户管理',
+                    title2: '系统实操',
+                    badge: 'CRM实战培训课程',
+                    bgClass: 'bg-gradient-to-br from-emerald-400 via-green-400 to-teal-500',
+                    badgeClass: 'bg-gradient-to-r from-emerald-500 to-green-500'
+                };
+            } else if (lessonTitle.includes('销售') || lessonTitle.includes('线索')) {
+                return {
+                    title1: '销售增长',
+                    title2: '系统化管理',
+                    badge: '销售管理实战课程',
+                    bgClass: 'bg-gradient-to-br from-orange-400 via-amber-400 to-yellow-500',
+                    badgeClass: 'bg-gradient-to-r from-orange-500 to-amber-500'
+                };
+            } else {
+                return {
+                    title1: '专业培训',
+                    title2: '技能提升',
+                    badge: '企业内训精品课程',
+                    bgClass: 'bg-gradient-to-br from-slate-400 via-gray-400 to-zinc-500',
+                    badgeClass: 'bg-gradient-to-r from-slate-500 to-gray-500'
+                };
+            }
+        }
+        
+        // 重置并播放预览动画
+        function resetAndPlayPreviewAnimations() {
+            const elements = [
+                'previewTitle1', 'previewTitle2', 'previewBadge', 
+                'previewPyramid', 'previewPlayBtn', 'previewStars'
+            ];
+            
+            // 重置所有元素
+            elements.forEach(id => {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.style.opacity = '0';
+                    element.style.transform = 'translateY(20px)';
+                    element.style.transition = 'all 0.8s ease-out';
+                }
+            });
+            
+            // 重新播放动画
+            setTimeout(() => startPreviewAnimations(), 200);
+        }
+        
+        // 显示课程完成选项
+        function showCourseCompletionOptions() {
+            console.log('showCourseCompletionOptions 函数被调用');
+            // 在中间预览区域显示完成选项
+            const previewArea = document.querySelector('.flex-1.bg-gray-50.flex.flex-col');
+            
+            if (!previewArea) {
+                console.error('找不到中间预览区域，选择器可能有问题');
+                return;
+            }
+            
+            console.log('找到了预览区域，开始替换内容');
+            previewArea.innerHTML = `
+                <div class="flex flex-col items-center justify-center h-full p-8">
+                    <!-- 完成状态 -->
+                    <div class="text-center mb-8">
+                        <div class="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4 animate-bounce">
+                            <i class="fas fa-check text-white text-3xl"></i>
+                        </div>
+                        <h2 class="text-2xl font-bold text-gray-900 mb-2">🎉 课程生成完成！</h2>
+                        <p class="text-gray-600 mb-6">AI已为您生成了完整的课程内容和材料</p>
+                    </div>
+                    
+                    <!-- 生成内容概览 -->
+                    <div class="bg-white rounded-xl border border-gray-200 p-6 mb-8 w-full max-w-2xl shadow-lg">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">本次生成内容包括：</h3>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="flex items-center space-x-3 p-3 bg-blue-50 rounded-lg">
+                                <i class="fas fa-file-powerpoint text-orange-500 text-lg"></i>
+                                <div>
+                                    <p class="font-medium text-gray-900 text-sm">PPT课件</p>
+                                    <p class="text-xs text-gray-500">精美课件模板</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-3 p-3 bg-green-50 rounded-lg">
+                                <i class="fas fa-file-alt text-blue-500 text-lg"></i>
+                                <div>
+                                    <p class="font-medium text-gray-900 text-sm">讲师手册</p>
+                                    <p class="text-xs text-gray-500">详细教学指南</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-3 p-3 bg-purple-50 rounded-lg">
+                                <i class="fas fa-tasks text-purple-500 text-lg"></i>
+                                <div>
+                                    <p class="font-medium text-gray-900 text-sm">练习题库</p>
+                                    <p class="text-xs text-gray-500">随堂测验题目</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-3 p-3 bg-yellow-50 rounded-lg">
+                                <i class="fas fa-book text-green-500 text-lg"></i>
+                                <div>
+                                    <p class="font-medium text-gray-900 text-sm">学员手册</p>
+                                    <p class="text-xs text-gray-500">学习参考资料</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 操作按钮 -->
+                    <div class="flex justify-center">
+                        <button id="editCourseBtn" class="px-8 py-3 bg-green-500 hover:bg-green-600 text-white rounded-lg font-medium transition-colors shadow-lg flex items-center space-x-2">
+                            <i class="fas fa-edit"></i>
+                            <span>去编辑</span>
+                        </button>
+                    </div>
+                    
+                    <!-- 提示信息 -->
+                    <p class="text-sm text-gray-500 mt-6 text-center">
+                        💡 建议先预览和编辑课程内容，确保满足您的需求后再发布
+                    </p>
+                </div>
+            `;
+            
+            // 绑定按钮事件
+            setTimeout(() => {
+                const editBtn = document.getElementById('editCourseBtn');
+                
+                console.log('绑定课程完成选项按钮事件:', {
+                    editBtn: !!editBtn
+                });
+                
+                if (editBtn) {
+                    editBtn.addEventListener('click', () => {
+                        console.log('点击了去编辑按钮');
+                        
+                        // 设置编辑模式标志
+                        AppState.isEditMode = true;
+                        
+                        // 保存当前课程数据到sessionStorage
+                        const courseData = {
+                            ...AppState.courseData,
+                            generatedContent: generateCourseContent(),
+                            completedAt: new Date().toISOString()
+                        };
+                        sessionStorage.setItem('editCourseData', JSON.stringify(courseData));
+                        
+                        // 跳转到基本信息页面（步骤1）进行编辑
+                        changeStep(1);
+                        
+                        // 显示编辑提示和快速跳转选项
+                        showEditModePanel();
+                    });
+                }
+            }, 100);
+        }
+        
+        // 生成课程内容数据
+        function generateCourseContent() {
+            const courseData = AppState.courseData;
+            const outline = courseData.outline || 'A';
+            
+            if (outline === 'A') {
+                return {
+                    title: courseData.title || '数据分析专业课程',
+                    chapters: [
+                        {
+                            id: 1,
+                            title: '数据分析基础',
+                            description: '掌握数据分析的基本概念和核心理论',
+                            lessons: [
+                                {
+                                    id: 'lesson-1-1',
+                                    title: '海尔数据分析',
+                                    duration: '30分钟',
+                                    content: {
+                                        slides: [
+                                            {
+                                                title: '海尔集团数据分析案例',
+                                                content: '通过海尔集团的实际案例，了解企业级数据分析的应用场景和价值。',
+                                                type: 'title-slide'
+                                            },
+                                            {
+                                                title: '海尔的数字化转型历程',
+                                                content: '• 2012年开始数字化转型\n• 建立统一数据平台\n• 实现全流程数据化运营\n• 数据驱动决策文化建立',
+                                                type: 'content-slide'
+                                            },
+                                            {
+                                                title: '核心数据分析指标',
+                                                content: '• 用户行为数据分析\n• 供应链效率指标\n• 产品质量数据监控\n• 市场趋势预测分析',
+                                                type: 'content-slide'
+                                            },
+                                            {
+                                                title: '实际应用成果',
+                                                content: '• 库存周转率提升30%\n• 客户满意度提高25%\n• 决策效率提升50%\n• 成本降低15%',
+                                                type: 'result-slide'
+                                            }
+                                        ],
+                                        exercises: [
+                                            {
+                                                question: '海尔数字化转型的核心是什么？',
+                                                options: ['技术升级', '数据驱动', '流程优化', '组织变革'],
+                                                correct: 1,
+                                                explanation: '海尔数字化转型的核心是建立数据驱动的决策文化和运营模式。'
+                                            }
+                                        ]
+                                    }
+                                },
+                                {
+                                    id: 'lesson-1-2',
+                                    title: 'Excel常用功能解析',
+                                    duration: '25分钟',
+                                    content: {
+                                        slides: [
+                                            {
+                                                title: 'Excel数据分析核心功能',
+                                                content: '掌握Excel在数据分析中的关键功能和应用技巧。',
+                                                type: 'title-slide'
+                                            },
+                                            {
+                                                title: '数据透视表应用',
+                                                content: '• 创建和配置数据透视表\n• 字段设置和布局调整\n• 数据筛选和排序\n• 动态数据分析',
+                                                type: 'content-slide'
+                                            },
+                                            {
+                                                title: '高级函数应用',
+                                                content: '• VLOOKUP/HLOOKUP查找函数\n• IF条件判断函数\n• SUMIF/COUNTIF统计函数\n• INDEX和MATCH组合应用',
+                                                type: 'content-slide'
+                                            },
+                                            {
+                                                title: '图表制作技巧',
+                                                content: '• 选择合适的图表类型\n• 数据可视化最佳实践\n• 动态图表制作\n• 专业图表美化',
+                                                type: 'content-slide'
+                                            }
+                                        ],
+                                        exercises: [
+                                            {
+                                                question: '哪个函数组合可以实现精确查找功能？',
+                                                options: ['VLOOKUP', 'INDEX+MATCH', 'SUMIF', 'COUNTIF'],
+                                                correct: 1,
+                                                explanation: 'INDEX+MATCH组合比VLOOKUP更灵活，可以实现双向查找和精确匹配。'
+                                            }
+                                        ]
+                                    }
+                                },
+                                {
+                                    id: 'lesson-1-3',
+                                    title: '数据分析方式与层次',
+                                    duration: '35分钟',
+                                    content: {
+                                        slides: [
+                                            {
+                                                title: '数据分析的层次结构',
+                                                content: '了解数据分析的不同层次和应用场景。',
+                                                type: 'title-slide'
+                                            },
+                                            {
+                                                title: '描述性分析',
+                                                content: '• 数据概况描述\n• 基本统计指标\n• 历史趋势分析\n• 现状总结报告',
+                                                type: 'content-slide'
+                                            },
+                                            {
+                                                title: '诊断性分析',
+                                                content: '• 问题根因分析\n• 关联性探索\n• 异常值检测\n• 深度挖掘洞察',
+                                                type: 'content-slide'
+                                            },
+                                            {
+                                                title: '预测性分析',
+                                                content: '• 趋势预测模型\n• 机器学习算法\n• 风险评估分析\n• 未来场景模拟',
+                                                type: 'content-slide'
+                                            },
+                                            {
+                                                title: '处方性分析',
+                                                content: '• 优化建议生成\n• 决策支持系统\n• 自动化决策\n• 智能推荐引擎',
+                                                type: 'content-slide'
+                                            }
+                                        ]
+                                    }
+                                }
+                            ]
+                        },
+                        {
+                            id: 2,
+                            title: '数据分析模型',
+                            description: '学习主流数据分析模型的原理和应用',
+                            lessons: [
+                                {
+                                    id: 'lesson-2-1',
+                                    title: '回归分析模型',
+                                    duration: '40分钟',
+                                    content: {
+                                        slides: [
+                                            {
+                                                title: '回归分析基础',
+                                                content: '掌握回归分析的基本原理和应用场景。',
+                                                type: 'title-slide'
+                                            },
+                                            {
+                                                title: '线性回归原理',
+                                                content: '• 最小二乘法原理\n• 回归方程建立\n• 参数估计方法\n• 模型评估指标',
+                                                type: 'content-slide'
+                                            },
+                                            {
+                                                title: '多元回归分析',
+                                                content: '• 多变量关系分析\n• 变量选择方法\n• 共线性问题处理\n• 交互效应分析',
+                                                type: 'content-slide'
+                                            }
+                                        ]
+                                    }
+                                },
+                                {
+                                    id: 'lesson-2-2',
+                                    title: '聚类分析方法',
+                                    duration: '30分钟',
+                                    content: {
+                                        slides: [
+                                            {
+                                                title: '聚类分析概述',
+                                                content: '了解聚类分析的基本概念和分类方法。',
+                                                type: 'title-slide'
+                                            },
+                                            {
+                                                title: 'K-means聚类',
+                                                content: '• 算法原理解析\n• 聚类数确定方法\n• 初始中心选择\n• 结果评估标准',
+                                                type: 'content-slide'
+                                            }
+                                        ]
+                                    }
+                                },
+                                {
+                                    id: 'lesson-2-3',
+                                    title: '时间序列分析',
+                                    duration: '45分钟',
+                                    content: {
+                                        slides: [
+                                            {
+                                                title: '时间序列分析基础',
+                                                content: '掌握时间序列数据的特点和分析方法。',
+                                                type: 'title-slide'
+                                            },
+                                            {
+                                                title: '趋势和周期性分析',
+                                                content: '• 趋势识别方法\n• 季节性模式分析\n• 周期性检测\n• 异常值处理',
+                                                type: 'content-slide'
+                                            }
+                                        ]
+                                    }
+                                }
+                            ]
+                        }
+                    ]
+                };
+            } else {
+                // CRM课程内容
+                return {
+                    title: courseData.title || 'CRM系统实战培训',
+                    chapters: [
+                        {
+                            id: 1,
+                            title: 'CRM系统入门',
+                            description: '快速掌握CRM系统的基本操作',
+                            lessons: [
+                                {
+                                    id: 'lesson-1-1',
+                                    title: '录入你的第一个客户',
+                                    duration: '20分钟',
+                                    content: {
+                                        slides: [
+                                            {
+                                                title: '客户信息录入实操',
+                                                content: '通过实际操作学会如何在CRM系统中录入客户信息。',
+                                                type: 'title-slide'
+                                            },
+                                            {
+                                                title: '客户信息字段详解',
+                                                content: '• 基本信息：姓名、电话、邮箱\n• 公司信息：公司名称、行业、规模\n• 联系偏好：沟通方式、时间\n• 业务需求：产品兴趣、预算范围',
+                                                type: 'content-slide'
+                                            },
+                                            {
+                                                title: '操作步骤演示',
+                                                content: '1. 登录CRM系统\n2. 点击"新建客户"\n3. 填写客户基本信息\n4. 设置客户标签和分类\n5. 保存并添加备注',
+                                                type: 'demo-slide'
+                                            }
+                                        ],
+                                        exercises: [
+                                            {
+                                                question: '在CRM系统中，客户信息的哪个字段是必填的？',
+                                                options: ['公司规模', '客户姓名', '年收入', '兴趣爱好'],
+                                                correct: 1,
+                                                explanation: '客户姓名是CRM系统中的核心标识信息，必须填写。'
+                                            }
+                                        ]
+                                    }
+                                }
+                            ]
+                        }
+                    ]
+                };
+            }
+        }
+        
+        // 生成发布设置
+        function generatePublishSettings() {
+            updateAIStatus('正在准备发布设置...', 'generating');
+            
+            setTimeout(() => {
+                updateAIStatus('课程即将完成，请配置发布设置', 'success');
+            }, 2000);
+        }
+        
+        // 更新课程预览
+        function updateLessonPreview(lesson, chapterIndex, lessonIndex) {
+            document.getElementById('currentLessonTitle').textContent = `${String(lessonIndex + 1).padStart(2, '0')} | ${lesson.title}`;
+            document.getElementById('currentLessonDuration').textContent = lesson.duration;
+            document.getElementById('currentLessonScore').textContent = lesson.score;
+            
+            // 更新课件设置面板
+            updateLessonSettings(lesson, chapterIndex, lessonIndex);
+        }
+        
+        // 更新课件设置面板
+        function updateLessonSettings(lesson, chapterIndex, lessonIndex) {
+            const titleInput = document.getElementById('lessonTitleInput');
+            const scoreInput = document.getElementById('lessonScore');
+            
+            if (titleInput) {
+                titleInput.value = lesson.title;
+            }
+            
+            if (scoreInput) {
+                scoreInput.value = parseFloat(lesson.score) || 2.0;
+            }
+            
+            // 根据课程类型设置播放形式
+            const playTypeRadios = document.querySelectorAll('input[name="playType"]');
+            if (playTypeRadios.length > 0) {
+                // 根据课程标题智能选择播放形式
+                let selectedType = 'audio'; // 默认纯音频
+                
+                if (lesson.title.includes('Excel') || lesson.title.includes('数据分析') || lesson.title.includes('CRM')) {
+                    selectedType = 'pdf'; // 操作类课程用PDF
+                } else if (lesson.title.includes('案例') || lesson.title.includes('实战')) {
+                    selectedType = 'image'; // 案例类课程用图片
+                }
+                
+                playTypeRadios.forEach(radio => {
+                    radio.checked = radio.value === selectedType;
+                });
+            }
+            
+            // 显示课件设置生成动画
+            animateLessonSettings();
+        }
+        
+        // 课件设置生成动画
+        function animateLessonSettings() {
+            const settingsPanel = document.querySelector('.w-96.flex-shrink-0.bg-white.border-l.border-gray-200');
+            if (settingsPanel) {
+                settingsPanel.classList.add('animate-fade-in');
+                
+                // 为每个设置项添加渐入动画
+                const settingItems = settingsPanel.querySelectorAll('.space-y-6 > div');
+                settingItems.forEach((item, index) => {
+                    item.style.opacity = '0';
+                    item.style.transform = 'translateX(20px)';
+                    
+                    setTimeout(() => {
+                        item.style.transition = 'all 0.3s ease-out';
+                        item.style.opacity = '1';
+                        item.style.transform = 'translateX(0)';
+                    }, 100 + index * 150);
+                });
+            }
+        }
+        
+        // 初始化课件设置面板事件
+        function initLessonSettingsEvents() {
+            // 保存设置按钮
+            const saveBtn = document.getElementById('saveSettings');
+            if (saveBtn) {
+                saveBtn.addEventListener('click', saveLessonSettings);
+            }
+            
+            // 积分调整按钮
+            const scoreButtons = document.querySelectorAll('.score-btn');
+            const scoreInput = document.getElementById('lessonScore');
+            
+            if (scoreButtons.length >= 2 && scoreInput) {
+                // 第一个按钮是向上，第二个是向下
+                scoreButtons[0].addEventListener('click', () => {
+                    const currentValue = parseFloat(scoreInput.value) || 0;
+                    scoreInput.value = Math.min(10, currentValue + 0.1).toFixed(1);
+                });
+                
+                scoreButtons[1].addEventListener('click', () => {
+                    const currentValue = parseFloat(scoreInput.value) || 0;
+                    scoreInput.value = Math.max(0, currentValue - 0.1).toFixed(1);
+                });
+            }
+            
+            // 标题输入框变化事件
+            const titleInput = document.getElementById('lessonTitleInput');
+            if (titleInput) {
+                titleInput.addEventListener('input', (e) => {
+                    // 实时更新预览标题
+                    const currentLessonTitle = document.getElementById('currentLessonTitle');
+                    if (currentLessonTitle) {
+                        const parts = currentLessonTitle.textContent.split(' | ');
+                        if (parts.length > 1) {
+                            currentLessonTitle.textContent = `${parts[0]} | ${e.target.value}`;
+                        }
+                    }
+                });
+            }
+        }
+        
+        // 保存课件设置
+        function saveLessonSettings() {
+            const titleInput = document.getElementById('lessonTitleInput');
+            const scoreInput = document.getElementById('lessonScore');
+            const playTypeRadios = document.querySelectorAll('input[name="playType"]:checked');
+            const saveBtn = document.getElementById('saveSettings');
+            
+            // 添加保存动画效果
+            if (saveBtn) {
+                saveBtn.classList.add('save-btn-loading');
+                saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>保存中...';
+                saveBtn.disabled = true;
+            }
+            
+            const settings = {
+                title: titleInput ? titleInput.value : '',
+                score: scoreInput ? parseFloat(scoreInput.value) : 2.0,
+                playType: playTypeRadios.length > 0 ? playTypeRadios[0].value : 'audio',
+                savedAt: new Date().toISOString()
+            };
+            
+            // 模拟保存延迟
+            setTimeout(() => {
+                // 恢复按钮状态
+                if (saveBtn) {
+                    saveBtn.classList.remove('save-btn-loading');
+                    saveBtn.innerHTML = '<i class="fas fa-save mr-2"></i>保存设置';
+                    saveBtn.disabled = false;
+                }
+                
+                // 显示保存成功提示
+                showSaveNotification('课件设置已保存');
+                
+                console.log('保存的课件设置:', settings);
+                
+                // 这里可以将设置保存到 AppState 或发送到服务器
+            }, 800);
+            
+            return settings;
+        }
+        
+        // 显示保存通知
+        function showSaveNotification(message) {
+            // 创建通知元素
+            const notification = document.createElement('div');
+            notification.className = 'fixed top-20 right-6 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg z-50 notification-slide-in';
+            notification.innerHTML = `
+                <div class="flex items-center space-x-2">
+                    <i class="fas fa-check-circle"></i>
+                    <span>${message}</span>
+                </div>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            // 3秒后自动移除
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                notification.style.transform = 'translateX(100%)';
+                setTimeout(() => {
+                    if (notification.parentNode) {
+                        notification.parentNode.removeChild(notification);
+                    }
+                }, 300);
+            }, 3000);
+        }
+        
+        // 开始预览生成动画
+        function startPreviewGeneration() {
+            const statusText = document.getElementById('previewAIStatusText');
+            const placeholder = document.getElementById('previewPlaceholder');
+            const preview = document.getElementById('coursePreview');
+            const header = document.getElementById('previewHeader');
+            
+            // 更新状态文本
+            const statusMessages = [
+                'AI正在分析课程内容...',
+                'AI正在设计课件风格...',
+                '正在生成3D视觉效果...',
+                '正在优化课件布局...',
+                '课件生成完成！'
+            ];
+            
+            let messageIndex = 0;
+            const updateStatus = () => {
+                if (messageIndex < statusMessages.length - 1) {
+                    statusText.textContent = statusMessages[messageIndex];
+                    messageIndex++;
+                    setTimeout(updateStatus, 1500);
+                } else {
+                    statusText.textContent = statusMessages[messageIndex];
+                    
+                    // 隐藏状态提示，显示预览内容
+                    setTimeout(() => {
+                        document.getElementById('previewAIStatus').style.display = 'none';
+                        header.style.opacity = '1';
+                        
+                        // 隐藏占位符，显示实际预览
+                        placeholder.style.display = 'none';
+                        preview.style.opacity = '1';
+                        
+                        // 开始元素动画
+                        startPreviewAnimations();
+                    }, 1000);
+                }
+            };
+            
+            setTimeout(updateStatus, 500);
+        }
+        
+        // 开始预览动画
+        function startPreviewAnimations() {
+            const title1 = document.getElementById('previewTitle1');
+            const title2 = document.getElementById('previewTitle2');
+            const badge = document.getElementById('previewBadge');
+            const pyramid = document.getElementById('previewPyramid');
+            const playBtn = document.getElementById('previewPlayBtn');
+            const stars = document.getElementById('previewStars');
+            
+            // 依次显示标题
+            setTimeout(() => {
+                title1.style.opacity = '1';
+                title1.style.transform = 'translateY(0)';
+            }, 500);
+            
+            setTimeout(() => {
+                title2.style.opacity = '1';
+                title2.style.transform = 'translateY(0)';
+            }, 800);
+            
+            setTimeout(() => {
+                badge.style.opacity = '1';
+                badge.style.transform = 'translateY(0)';
+            }, 1100);
+            
+            // 显示金字塔
+            setTimeout(() => {
+                pyramid.style.opacity = '1';
+            }, 1400);
+            
+            // 显示播放按钮
+            setTimeout(() => {
+                playBtn.style.opacity = '1';
+            }, 2000);
+            
+            // 显示装饰星星
+            setTimeout(() => {
+                stars.style.opacity = '1';
+            }, 2300);
+        }
+
+        // 生成高级设置
+        function generateAdvancedSettings() {
+            const step3Container = document.getElementById('step3');
+            const settingsHTML = `
+                <div class="grid md:grid-cols-2 gap-6 animate-fade-in">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">教学方式</label>
+                        <div class="space-y-2">
+                            <label class="flex items-center">
+                                <input type="checkbox" checked class="mr-2 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                <span class="text-sm text-gray-700 dark:text-gray-300">理论讲解</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" checked class="mr-2 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                <span class="text-sm text-gray-700 dark:text-gray-300">实操演示</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" checked class="mr-2 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                <span class="text-sm text-gray-700 dark:text-gray-300">随堂练习</span>
+                            </label>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">评估方式</label>
+                        <div class="space-y-2">
+                            <label class="flex items-center">
+                                <input type="checkbox" checked class="mr-2 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                <span class="text-sm text-gray-700 dark:text-gray-300">课堂测验</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" class="mr-2 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                <span class="text-sm text-gray-700 dark:text-gray-300">课后作业</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" checked class="mr-2 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                <span class="text-sm text-gray-700 dark:text-gray-300">反馈调研</span>
+                            </label>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">目标人数</label>
+                        <select class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+                            <option value="10-20" selected>10-20人</option>
+                            <option value="5-10">5-10人</option>
+                            <option value="20-50">20-50人</option>
+                            <option value="50+">50人以上</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">课程语言</label>
+                        <select class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+                            <option value="zh" selected>中文</option>
+                            <option value="en">英文</option>
+                            <option value="zh-en">中英双语</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="mt-6 animate-fade-in">
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">培训材料</label>
+                    <div class="grid md:grid-cols-3 gap-4">
+                        <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg p-4">
+                            <div class="flex items-center space-x-2 mb-2">
+                                <i class="fas fa-file-powerpoint text-orange-500"></i>
+                                <span class="font-medium text-gray-900 dark:text-white">PPT课件</span>
+                            </div>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">AI自动生成精美课件</p>
+                        </div>
+                        <div class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-700 rounded-lg p-4">
+                            <div class="flex items-center space-x-2 mb-2">
+                                <i class="fas fa-file-alt text-blue-500"></i>
+                                <span class="font-medium text-gray-900 dark:text-white">学员手册</span>
+                            </div>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">详细操作指南文档</p>
+                        </div>
+                        <div class="bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-700 rounded-lg p-4">
+                            <div class="flex items-center space-x-2 mb-2">
+                                <i class="fas fa-tasks text-purple-500"></i>
+                                <span class="font-medium text-gray-900 dark:text-white">练习题库</span>
+                            </div>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">配套练习和测验题</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            setTimeout(() => {
+                const existingGrid = step3Container.querySelector('.grid');
+                if (existingGrid) {
+                    existingGrid.outerHTML = settingsHTML;
+                } else {
+                    step3Container.innerHTML += settingsHTML;
+                }
+                
+                // 高级设置填充完成后，等待2秒后自动跳转到第四步
+                setTimeout(() => {
+                    updateAIStatus('高级设置已完成，正在智能推荐学员...', 'generating');
+                    
+                    setTimeout(() => {
+                        changeStep(4);
+                    }, 1000);
+                }, 2000);
+            }, 500);
+        }
+
+        // 生成学员指派
+        function generateStudentAssignment() {
+            const container = document.getElementById('studentAssignment');
+            
+            setTimeout(() => {
+                container.innerHTML = `
+                    <div class="animate-fade-in">
+                        <div class="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700 rounded-lg p-4 mb-6">
+                            <div class="flex items-center space-x-2">
+                                <i class="fas fa-lightbulb text-yellow-500"></i>
+                                <span class="font-medium text-yellow-800 dark:text-yellow-200">智能推荐</span>
+                            </div>
+                            <p class="text-yellow-700 dark:text-yellow-300 text-sm mt-1">
+                                根据课程内容分析，建议指派销售部门的新入职员工参加此培训
+                            </p>
+                        </div>
+                        
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">选择部门</label>
+                                <div class="space-y-2">
+                                    <label class="flex items-center">
+                                        <input type="checkbox" checked class="mr-2 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                        <span class="text-sm text-gray-700 dark:text-gray-300">销售部</span>
+                                        <span class="ml-2 text-xs text-gray-500">(12人)</span>
+                                    </label>
+                                    <label class="flex items-center">
+                                        <input type="checkbox" class="mr-2 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                        <span class="text-sm text-gray-700 dark:text-gray-300">市场部</span>
+                                        <span class="ml-2 text-xs text-gray-500">(8人)</span>
+                                    </label>
+                                    <label class="flex items-center">
+                                        <input type="checkbox" class="mr-2 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                        <span class="text-sm text-gray-700 dark:text-gray-300">客服部</span>
+                                        <span class="ml-2 text-xs text-gray-500">(6人)</span>
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">培训时间安排</label>
+                                <div class="space-y-3">
+                                    <div>
+                                        <label class="block text-xs text-gray-500 dark:text-gray-400 mb-1">开始日期</label>
+                                        <input type="date" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs text-gray-500 dark:text-gray-400 mb-1">培训时间</label>
+                                        <select class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm">
+                                            <option>09:00-12:00</option>
+                                            <option>14:00-17:00</option>
+                                            <option>19:00-21:00</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-6">
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">预计参与学员</label>
+                            <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                                <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                                    <div class="text-center">
+                                        <div class="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center mx-auto mb-2">
+                                            <span class="text-white font-medium text-sm">张三</span>
+                                        </div>
+                                        <p class="text-xs text-gray-600 dark:text-gray-400">销售专员</p>
+                                    </div>
+                                    <div class="text-center">
+                                        <div class="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-2">
+                                            <span class="text-white font-medium text-sm">李四</span>
+                                        </div>
+                                        <p class="text-xs text-gray-600 dark:text-gray-400">销售专员</p>
+                                    </div>
+                                    <div class="text-center">
+                                        <div class="w-12 h-12 bg-purple-500 rounded-full flex items-center justify-center mx-auto mb-2">
+                                            <span class="text-white font-medium text-sm">王五</span>
+                                        </div>
+                                        <p class="text-xs text-gray-600 dark:text-gray-400">销售助理</p>
+                                    </div>
+                                    <div class="text-center">
+                                        <div class="w-12 h-12 bg-orange-500 rounded-full flex items-center justify-center mx-auto mb-2">
+                                            <span class="text-white font-medium text-sm">+9</span>
+                                        </div>
+                                        <p class="text-xs text-gray-600 dark:text-gray-400">更多学员</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                                         </div>
+                 `;
+                 
+                 // 学员指派完成后，显示完成状态
+                 setTimeout(() => {
+                     updateAIStatus('所有课程设置已完成！您可以查看并完成课程创建。', 'completed');
+                 }, 2000);
+             }, 500);
+         }
+
+        // 更新下一步按钮文本
+        function updateNextStepButton() {
+            const nextStepBtn = document.getElementById('nextStepBtn');
+            if (AppState.isEditMode) {
+                nextStepBtn.innerHTML = '<i class="fas fa-edit mr-2"></i>进入课程编辑器';
+            } else {
+                nextStepBtn.textContent = '下一步';
+            }
+        }
+
+        // 显示编辑模式面板
+        function showEditModePanel() {
+            // 更新下一步按钮文本
+            updateNextStepButton();
+            
+            // 在步骤1顶部添加编辑模式提示
+            const step1Container = document.getElementById('step1');
+            const existingPanel = document.getElementById('editModePanel');
+            
+            // 如果已经存在面板，先移除
+            if (existingPanel) {
+                existingPanel.remove();
+            }
+            
+            const editModePanel = document.createElement('div');
+            editModePanel.id = 'editModePanel';
+            editModePanel.className = 'mb-6 animate-fade-in';
+            editModePanel.innerHTML = `
+                <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg p-4">
+                    <div class="flex items-start justify-between">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
+                                <i class="fas fa-edit text-white"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-semibold text-blue-900 dark:text-blue-100">编辑模式已激活</h3>
+                                <p class="text-sm text-blue-700 dark:text-blue-300">您可以修改课程基本信息，完成后可以继续编辑详细内容</p>
+                            </div>
+                        </div>
+                        <button id="closeEditPanel" class="text-blue-400 hover:text-blue-600 transition-colors">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="mt-4 flex items-center space-x-4">
+                        <button id="quickEditBtn" class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center space-x-2">
+                            <i class="fas fa-bolt"></i>
+                            <span>快速编辑内容</span>
+                        </button>
+                        <button id="continueStepsBtn" class="px-4 py-2 border border-blue-300 text-blue-700 dark:text-blue-300 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-colors flex items-center space-x-2">
+                            <i class="fas fa-step-forward"></i>
+                            <span>继续流程设置</span>
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            // 将面板插入到步骤1容器的开头
+            step1Container.insertBefore(editModePanel, step1Container.firstChild);
+            
+            // 绑定事件
+            document.getElementById('closeEditPanel').addEventListener('click', () => {
+                // 重置编辑模式状态
+                AppState.isEditMode = false;
+                updateNextStepButton();
+                
+                editModePanel.remove();
+            });
+            
+            document.getElementById('quickEditBtn').addEventListener('click', () => {
+                // 保存当前编辑的基本信息
+                saveBasicInfo();
+                
+                // 跳转到 course-editor 页面
+                window.open('course-editor.html', '_blank');
+            });
+            
+            document.getElementById('continueStepsBtn').addEventListener('click', () => {
+                // 重置编辑模式状态
+                AppState.isEditMode = false;
+                updateNextStepButton();
+                
+                // 移除面板，继续正常流程
+                editModePanel.remove();
+            });
+        }
+        
+        // 保存基本信息
+        function saveBasicInfo() {
+            const courseTitle = document.getElementById('courseTitle').value;
+            const courseCategory = document.getElementById('courseCategory').value;
+            const courseDescription = document.getElementById('courseDescription').value;
+            
+            // 更新应用状态
+            AppState.courseData.title = courseTitle;
+            AppState.courseData.category = courseCategory;
+            AppState.courseData.description = courseDescription;
+            
+            // 更新 sessionStorage 中的数据
+            const editCourseData = JSON.parse(sessionStorage.getItem('editCourseData') || '{}');
+            editCourseData.title = courseTitle;
+            editCourseData.category = courseCategory;
+            editCourseData.description = courseDescription;
+            sessionStorage.setItem('editCourseData', JSON.stringify(editCourseData));
+        }
+        
+
+        // 完成课程创建
+        function finishCourse() {
+            alert('课程创建完成！');
+        }
+
+        // 启动应用
+        document.addEventListener('DOMContentLoaded', initApp);
+    </script>
+</body>
+</html> 
